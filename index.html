@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Математика және мамандық әлемі / Математика и мир профессий</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ========================================================================
+       ШАПКА САЙТА В СТИЛЕ УЧЕБНОГО АТЛАСА И ПРЕЗЕНТАЦИИ
+       ======================================================================== -->
+  <header class="atlas-header">
+    <div class="atlas-topbar">
+      <div class="container atlas-topbar-inner">
+        <div class="atlas-code-strip">
+          <span id="codeStripText">10–11 СЫНЫП · ҚОЛДАНБАЛЫ МАТЕМАТИКА ЖӘНЕ КӘСІБИ БАҒДАР АТЛАСЫ</span>
+        </div>
+        <div class="lang-toggle" role="group" aria-label="Language selector">
+          <button id="langKkBtn" class="lang-btn active" onclick="setLanguage('kk')">ҚАЗАҚША</button>
+          <button id="langRuBtn" class="lang-btn" onclick="setLanguage('ru')">РУССКИЙ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container atlas-hero">
+      <div class="atlas-title-group">
+        <!-- Векторная эмблема циркуля и линейки (как в шапке презентации) -->
+        <div class="compass-emblem" aria-hidden="true">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 2v1"/>
+            <path d="m10.5 6.5-6 14.5"/>
+            <path d="m13.5 6.5 6 14.5"/>
+            <path d="M5 16h14"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="siteTitleText" class="atlas-title">Математика және мамандық әлемі</h1>
+          <p id="siteLeadText" class="atlas-subtitle">
+            Өндірістік жағдаятты зертте · Сызба мен 3D модельді айналдыр · Параметрді өзгертіп, инженерлік шешім қабылда
+          </p>
+        </div>
+      </div>
+
+      <!-- Техническая спецификация базы задач -->
+      <div class="atlas-spec-box">
+        <div class="spec-cell">
+          <span id="specTasksLbl" class="spec-label">БАРЛЫҚ ЕСЕП</span>
+          <span id="specTasksVal" class="spec-val">27 кейс</span>
+        </div>
+        <div class="spec-cell">
+          <span id="specSubjLbl" class="spec-label">ПӘНДЕР</span>
+          <span id="specSubjVal" class="spec-val">Алгебра · Геометрия</span>
+        </div>
+        <div class="spec-cell">
+          <span id="specLvlLbl" class="spec-label">ДЕҢГЕЙЛЕР</span>
+          <span id="specLvlVal" class="spec-val">A · B · C</span>
+        </div>
+        <div class="spec-cell">
+          <span id="specGrdLbl" class="spec-label">СЫНЫПТАР</span>
+          <span id="specGrdVal" class="spec-val">10 – 11</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       РАБОЧАЯ ОБЛАСТЬ
+       ======================================================================== -->
+  <main class="main-workspace">
+    <div class="container">
+
+      <!-- ====================================================================
+           РАЗДЕЛ 1: КАТАЛОГ ЗАДАЧ С МИНИ-ЧЕРТЕЖАМИ И ФИЛЬТРАМИ
+           ==================================================================== -->
+      <section id="catalogSection">
+        <div class="control-dock">
+          <!-- Вкладки по предметам -->
+          <div class="dock-subjects" role="tablist">
+            <button id="tabAllBtn" class="dock-subject-btn active" onclick="setSubjectFilter('all')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <span id="tabAllText">Барлық есептер</span>
+              <span id="tabAllCount" class="dock-count">27</span>
+            </button>
+            <button id="tabAlgBtn" class="dock-subject-btn" onclick="setSubjectFilter('algebra')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16c2.5-6 5.5-9 11-9"/></svg>
+              <span id="tabAlgText">Алгебра және анализ бастамалары</span>
+              <span id="tabAlgCount" class="dock-count">10</span>
+            </button>
+            <button id="tabGeoBtn" class="dock-subject-btn" onclick="setSubjectFilter('geometry')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 19 22 19 12 2"/><line x1="12" y1="2" x2="12" y2="19"/></svg>
+              <span id="tabGeoText">Геометрия</span>
+              <span id="tabGeoCount" class="dock-count">17</span>
+            </button>
+          </div>
+
+          <!-- Панель фильтрации по уровням A/B/C, классам 10/11 и поиску -->
+          <div class="dock-filters-bar">
+            <div class="filter-cluster">
+              <span id="lvlFilterTitle" class="cluster-title">ДЕҢГЕЙ:</span>
+              <div class="btn-group">
+                <button id="lvlAllBtn" class="filter-chip active" onclick="setLevelFilter('all')">
+                  <span id="lvlAllBtnText">Барлығы</span>
+                </button>
+                <button id="lvlABtn" class="filter-chip" onclick="setLevelFilter('A')">
+                  <span class="lvl-indicator lvl-A"></span>
+                  <span id="lvlABtnText">A (Базалық)</span>
+                </button>
+                <button id="lvlBBtn" class="filter-chip" onclick="setLevelFilter('B')">
+                  <span class="lvl-indicator lvl-B"></span>
+                  <span id="lvlBBtnText">B (Орта)</span>
+                </button>
+                <button id="lvlCBtn" class="filter-chip" onclick="setLevelFilter('C')">
+                  <span class="lvl-indicator lvl-C"></span>
+                  <span id="lvlCBtnText">C (Күрделі)</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="filter-cluster">
+              <span id="grdFilterTitle" class="cluster-title">СЫНЫП:</span>
+              <div class="btn-group">
+                <button id="grdAllBtn" class="filter-chip active" onclick="setGradeFilter('all')">
+                  <span id="grdAllBtnText">Барлығы</span>
+                </button>
+                <button id="grd10Btn" class="filter-chip" onclick="setGradeFilter(10)">
+                  <span id="grd10BtnText">10-сынып</span>
+                </button>
+                <button id="grd11Btn" class="filter-chip" onclick="setGradeFilter(11)">
+                  <span id="grd11BtnText">11-сынып</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="search-box">
+              <svg class="search-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input id="searchField" type="search" class="search-field" placeholder="Іздеу..." />
+              <button id="searchClearBtn" class="search-clear-btn hide" onclick="clearSearch()" title="Clear">✕</button>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span id="foundCounter" style="font-size:13px; color:var(--ink-700); white-space:nowrap;"></span>
+              <button id="resetFiltersBtn" class="filter-chip hide" style="border:1px solid var(--border-line); border-radius:4px;" onclick="resetFilters()"></button>
+            </div>
+          </div>
+
+          <!-- Компактная строка критериев уровней A / B / C -->
+          <div class="level-strip">
+            <div class="level-strip-items">
+              <span class="level-strip-item"><span class="lvl-indicator lvl-A"></span> <span id="stripADesc"></span></span>
+              <span class="level-strip-item"><span class="lvl-indicator lvl-B"></span> <span id="stripBDesc"></span></span>
+              <span class="level-strip-item"><span class="lvl-indicator lvl-C"></span> <span id="stripCDesc"></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Сетка карточек с двойным визуальным превью (фото + мини-чертёж) -->
+        <div id="catalogGrid" class="catalog-Grid"></div>
+
+        <!-- Справочная таблица распределения задач для учителя -->
+        <div class="matrix-drawer">
+          <div class="matrix-drawer-hdr">
+            <h3 id="matrixHeadingText" style="margin:0; font-size:15.5px; color:var(--forest-900);"></h3>
+            <button id="matrixToggleBtn" class="nav-action-btn" onclick="toggleMatrixDrawer()"></button>
+          </div>
+          <div id="matrixTableWrap" class="matrix-table-wrap hide">
+            <table class="atlas-table">
+              <thead>
+                <tr>
+                  <th id="thCode">Код</th>
+                  <th id="thSubj">Пән</th>
+                  <th id="thLvl">Деңгей</th>
+                  <th id="thGrd">Сынып</th>
+                  <th id="thJob">Мамандық</th>
+                  <th id="thTitle">Тақырып</th>
+                  <th id="thTopic">Модель</th>
+                </tr>
+              </thead>
+              <tbody id="matrixTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           РАЗДЕЛ 2: ИНТЕРАКТИВНЫЙ ЛИСТ-ПЛАКАТ ЗАДАЧИ (5 ВИЗУАЛЬНЫХ ЗОН)
+           ==================================================================== -->
+      <section id="posterSection" class="hide">
+        <div class="poster-toolbar">
+          <button id="backCatalogBtn" class="nav-action-btn" onclick="closeTask()">
+            ← Барлық есептер каталогына
+          </button>
+          <div style="display:flex; gap:8px;">
+            <button id="prevTaskBtn" class="nav-action-btn" onclick="stepTask(-1)">← Алдыңғы</button>
+            <button id="nextTaskBtn" class="nav-action-btn" onclick="stepTask(1)">Келесі →</button>
+          </div>
+        </div>
+
+        <div class="poster-sheet">
+          <!-- 1. Верхняя полоса плаката: Предмет + скошенный жёлтый флаг класса (как в презентации) -->
+          <div class="poster-banner">
+            <div class="poster-banner-left">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f6c44e" stroke-width="2.2"><circle cx="12" cy="5" r="2"/><path d="m10.5 6.5-6 14.5"/><path d="m13.5 6.5 6 14.5"/><path d="M5 16h14"/></svg>
+              <span id="posterSubjectTitle" class="poster-subject-title"></span>
+            </div>
+            <div id="posterGradeFlag" class="poster-grade-flag"></div>
+          </div>
+
+          <!-- 2. Подшапка с зелёным ярлыком профессии и заголовком задачи -->
+          <div class="poster-subbanner">
+            <div class="job-tab-group">
+              <div class="job-green-badge">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6h0"/><path d="M14 6h0a6 6 0 0 1 6 6v3"/></svg>
+                <span id="posterJobBadge"></span>
+              </div>
+              <h2 id="posterTaskHeading" class="poster-task-heading"></h2>
+            </div>
+            <div id="posterMetaBadges" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+          </div>
+
+          <!-- 3. Трёхколоночная сетка плаката -->
+          <div class="poster-body">
+
+            <!-- ЛЕВАЯ КОЛОНКА: Аннотированное фото с размерными линиями + Условие + Цифровое задание -->
+            <div class="poster-col">
+              <!-- ВИЗУАЛЬНАЯ ЗОНА 1: Фото объекта с чертежными стрелками поверх изображения -->
+              <div class="annotated-photo-box">
+                <img id="taskMainPhoto" class="annotated-photo-img" src="" alt="" />
+                <div id="photoSvgOverlay" class="photo-svg-overlay"></div>
+                <div class="photo-overlay-bar">
+                  <span id="photoOverlayCaption"></span>
+                  <button id="toggleOverlayBtn" class="btn-tiny-toggle" onclick="togglePhotoOverlay()"></button>
+                </div>
+              </div>
+
+              <!-- Условие задачи («Өндірістік жағдаят») -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
+                    <span id="boxContextTitle">Өндірістік жағдаят</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <p id="taskProblemParagraph" style="margin:0 0 12px; font-size:14.8px; line-height:1.58;"></p>
+                  <div style="background:var(--forest-50); border-left:3.5px solid var(--forest-700); padding:9px 12px; border-radius:4px;">
+                    <div id="boxGivenLabel" style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--forest-800); margin-bottom:4px;"></div>
+                    <ul id="taskGivenUl" style="margin:0; padding-left:18px; font-size:13.5px; color:var(--ink-900);"></ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Цифровое задание (GeoGebra / Desmos чеклист) -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <span id="boxDigitalTasksTitle">Цифрлық тапсырма</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <ul id="digitalChecklistUl" class="digital-checklist"></ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: 2D Чертёж + Вращаемая 3D-модель GeoGebra + График + Ползунок + Таблица -->
+            <div class="poster-col">
+              <!-- ВИЗУАЛЬНАЯ ЗОНА 2: Детальный 2D чертёж / симулятор процесса на миллиметровке -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 19 22 19 12 2"/><line x1="12" y1="2" x2="12" y2="19"/></svg>
+                    <span id="boxBlueprintTitle">Инженерлік сызба және математикалық модель</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <div id="blueprintStageBox" class="blueprint-stage"></div>
+                </div>
+              </div>
+
+              <!-- ВИЗУАЛЬНЫЕ ЗОНЫ 3, 4, 5: 3D модель GeoGebra + График зависимости + Ползунок + Таблица -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span id="boxInteractiveTitle">3D модель (GeoGebra) және тәуелділік графигі</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <div class="geogebra-split">
+                    <!-- 3D модель GeoGebra (вращается мышью) -->
+                    <div class="geogebra-3d-card">
+                      <canvas id="geogebra3dCanvas" class="geogebra-3d-canvas" title="Drag to rotate 3D model"></canvas>
+                      <div class="geogebra-badge">
+                        <div id="geogebra3dTitle" style="font-weight:800; color:var(--forest-900);">3D модель (GeoGebra)</div>
+                        <div id="geogebra3dHint" style="font-size:10.5px; color:var(--ink-500);"></div>
+                      </div>
+                    </div>
+
+                    <!-- График зависимости с жёлтой выноской -->
+                    <div class="chart-card">
+                      <canvas id="dependencyChartCanvas"></canvas>
+                    </div>
+                  </div>
+
+                  <!-- Ползунок параметра и быстрые пресеты -->
+                  <div class="lab-control-strip">
+                    <div class="slider-top-row">
+                      <span id="paramTitleText" class="param-title-text"></span>
+                      <span id="paramLiveReadout" class="param-live-readout"></span>
+                    </div>
+                    <input
+                      id="paramRangeInput"
+                      type="range"
+                      class="custom-range"
+                      oninput="onParamSlide(this.value)"
+                    />
+                    <div id="presetPillsBox" class="preset-pills"></div>
+                  </div>
+
+                  <!-- Динамическая таблица значений (клик по ячейке меняет параметр) -->
+                  <div class="data-table-wrap">
+                    <div id="tableTitleText" style="font-size:12px; font-weight:700; color:var(--ink-700); margin-bottom:5px;"></div>
+                    <table id="paramValueTable" class="val-table"></table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ПРАВАЯ КОЛОНКА: Типографские формулы + Пошаговое решение -->
+            <div class="poster-col">
+              <!-- Қолданылатын формулалар -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                    <span id="boxFormulasTitle">Қолданылатын формулалар</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <div id="mathFormulasList" class="math-list"></div>
+                </div>
+              </div>
+
+              <!-- Шешуі және қорытынды (по умолчанию скрыто) -->
+              <div class="p-box">
+                <div class="p-box-hdr">
+                  <h3>
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span id="boxSolutionTitle">Шешуі</span>
+                  </h3>
+                </div>
+                <div class="p-box-content">
+                  <button id="solutionRevealBtn" class="btn-reveal-solution" onclick="toggleSolutionBox()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span id="solutionRevealBtnText">Шешуі мен жауабын ашу</span>
+                  </button>
+                  <div id="solutionContentBox" class="solution-box hide">
+                    <ol id="solStepsList" class="sol-steps"></ol>
+                    <div id="solAnswerHighlight" class="sol-answer-highlight"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 4. Нижние два блока плаката: «Кәсіби бағдар» (с мишенью) и «Ойлан!» (с лампочкой) -->
+          <div class="poster-footer-grid">
+            <div class="poster-career-card">
+              <div class="career-icon-circle" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+              </div>
+              <div>
+                <h4 id="careerTitleText">Кәсіби бағдар:</h4>
+                <p id="careerDescText"></p>
+              </div>
+            </div>
+
+            <div class="poster-think-card">
+              <div class="think-icon-circle" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              </div>
+              <div>
+                <h4 id="thinkTitleText">Ойлан:</h4>
+                <ol id="thinkListOl" class="think-numbered-list"></ol>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="atlas-footer">
+    <div class="container">
+      <div id="footerNoteText"></div>
+    </div>
+  </footer>
+
+  <script src="data/images.js"></script>
+  <script src="data/tasks.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1458 @@
+/* ==========================================================================
+   МАТЕМАТИКА ЖӘНЕ МАМАНДЫҚ ӘЛЕМІ / МАТЕМАТИКА И МИР ПРОФЕССИЙ
+   Оригинальная дизайн-система: Инженерный атлас и интерактивный плакат
+   (по мотивам учебных презентаций 10–11 классов, без шаблонных ИИ-клише)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+:root {
+  --forest-950: #052820;
+  --forest-900: #083d30;
+  --forest-800: #0b5342;
+  --forest-700: #0f6a55;
+  --forest-600: #168369;
+  --forest-100: #d9ece5;
+  --forest-50: #ebf5f1;
+
+  --lime-700: #2b7a1f;
+  --lime-600: #379628;
+  --lime-500: #48b037;
+  --lime-100: #e3f5df;
+
+  --amber-600: #c78309;
+  --amber-500: #eeb02b;
+  --amber-400: #f6c44e;
+  --amber-100: #fdf1cf;
+  --amber-50: #CTfcf2;
+
+  --crimson-600: #c92a2a;
+  --crimson-100: #ffe3e3;
+
+  --cobalt-700: #1852b8;
+  --cobalt-600: #2466d8;
+  --cobalt-100: #dde9fc;
+
+  --ink-900: #13231f;
+  --ink-700: #2d423c;
+  --ink-500: #556b65;
+  --ink-300: #9eb0aa;
+
+  --paper-bg: #f3f2ec;
+  --paper-card: #ffffff;
+  --paper-warm: #fcf8ea;
+  --border-strong: #173f33;
+  --border-line: #c4d3cc;
+  --border-soft: #dce6e1;
+
+  --font-sans: 'Golos Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+  --font-math: 'PT Serif', 'Cambria Math', 'Times New Roman', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--paper-bg);
+  background-image:
+    linear-gradient(to right, rgba(11, 83, 66, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 83, 66, 0.055) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink-900);
+  font: 15.5px/1.55 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.container {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ==========================================================================
+   ВЕРХНЯЯ ШАПКА В СТИЛЕ УЧЕБНОГО АТЛАСА / ПРЕЗЕНТАЦИИ
+   ========================================================================== */
+
+.atlas-header {
+  background: var(--forest-900);
+  color: #ffffff;
+  border-bottom: 4px solid var(--amber-500);
+  position: relative;
+}
+
+.atlas-topbar {
+  background: var(--forest-950);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 0;
+  font-size: 12.5px;
+}
+
+.atlas-topbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.atlas-code-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  color: #a9cfc3;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.code-divider {
+  opacity: 0.35;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid rgba(238, 176, 43, 0.5);
+  background: var(--forest-900);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.lang-btn {
+  border: 0;
+  background: transparent;
+  color: #cfe5de;
+  padding: 5px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-btn.active {
+  background: var(--amber-500);
+  color: var(--forest-950);
+}
+
+.atlas-hero {
+  padding: 22px 0 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+}
+
+.atlas-title-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.compass-emblem {
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--amber-500);
+  background: var(--forest-800);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--amber-400);
+}
+
+.atlas-title {
+  margin: 0 0 6px;
+  font-size: clamp(23px, 3.2vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.atlas-subtitle {
+  margin: 0;
+  color: #c7e3d9;
+  font-size: 14.5px;
+  max-width: 720px;
+}
+
+/* Правая плашка спецификации в шапке */
+.atlas-spec-box {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(5, 40, 32, 0.55);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+}
+
+.spec-cell {
+  padding: 8px 14px;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.spec-cell:nth-child(2n) {
+  border-right: 0;
+}
+
+.spec-cell:nth-last-child(-n+2) {
+  border-bottom: 0;
+}
+
+.spec-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #8ab8a9;
+  display: block;
+}
+
+.spec-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--amber-400);
+}
+
+/* ==========================================================================
+   ПАНЕЛЬ УПРАВЛЕНИЯ КАТАЛОГОМ (КОМПАКТНАЯ ИНЖЕНЕРНАЯ ШКАЛА)
+   ========================================================================== */
+
+.main-workspace {
+  padding: 24px 0 64px;
+}
+
+.control-dock {
+  background: var(--paper-card);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 rgba(11, 83, 66, 0.14);
+  margin-bottom: 22px;
+  overflow: hidden;
+}
+
+.dock-subjects {
+  display: flex;
+  background: var(--forest-50);
+  border-bottom: 1.5px solid var(--border-line);
+  flex-wrap: wrap;
+}
+
+.dock-subject-btn {
+  border: 0;
+  border-right: 1px solid var(--border-line);
+  background: transparent;
+  color: var(--ink-700);
+  padding: 13px 22px;
+  font-size: 14.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dock-subject-btn:hover {
+  background: #dff0e9;
+  color: var(--forest-900);
+}
+
+.dock-subject-btn.active {
+  background: var(--forest-800);
+  color: #ffffff;
+}
+
+.dock-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dock-subject-btn.active .dock-count {
+  background: var(--amber-500);
+  color: var(--forest-950);
+  font-weight: 700;
+}
+
+.dock-filters-bar {
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.filter-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cluster-title {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  margin-right: 2px;
+}
+
+.btn-group {
+  display: inline-flex;
+  border: 1px solid var(--border-line);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--paper-bg);
+}
+
+.filter-chip {
+  border: 0;
+  border-right: 1px solid var(--border-line);
+  background: transparent;
+  color: var(--ink-700);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-chip:last-child {
+  border-right: 0;
+}
+
+.filter-chip:hover {
+  background: #e5ede9;
+}
+
+.filter-chip.active {
+  background: var(--forest-900);
+  color: #ffffff;
+}
+
+.lvl-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.lvl-indicator.lvl-A { background: var(--lime-600); }
+.lvl-indicator.lvl-B { background: var(--cobalt-600); }
+.lvl-indicator.lvl-C { background: var(--crimson-600); }
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-svg {
+  position: absolute;
+  left: 11px;
+  color: var(--ink-500);
+  pointer-events: none;
+}
+
+.search-field {
+  width: 100%;
+  padding: 7px 32px 7px 34px;
+  border: 1px solid var(--border-line);
+  border-radius: 5px;
+  background: var(--paper-bg);
+  color: var(--ink-900);
+  font-size: 13.5px;
+}
+
+.search-field:focus {
+  outline: none;
+  border-color: var(--forest-700);
+  background: #ffffff;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 8px;
+  border: 0;
+  background: var(--border-line);
+  color: var(--ink-700);
+  width: 19px;
+  height: 19px;
+  border-radius: 3px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Пояснительная полоса уровней A/B/C */
+.level-strip {
+  background: #f8faf9;
+  border-top: 1px solid var(--border-soft);
+  padding: 9px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--ink-700);
+}
+
+.level-strip-items {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.level-strip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   БЕЙДЖИ И ТЕХНИЧЕСКИЕ МЕТКИ
+   ========================================================================== */
+
+.tech-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.tag-code {
+  background: var(--forest-950);
+  color: var(--amber-400);
+}
+
+.tag-grade {
+  background: var(--amber-500);
+  color: var(--forest-950);
+}
+
+.tag-subject-algebra {
+  background: #e3effd;
+  color: #15459b;
+  border: 1px solid #bfd6f8;
+}
+
+.tag-subject-geometry {
+  background: #e4f4e2;
+  color: #1e6414;
+  border: 1px solid #bfe3ba;
+}
+
+.tag-level-A {
+  background: var(--lime-100);
+  color: var(--lime-700);
+  border: 1px solid #b7e1b0;
+}
+
+.tag-level-B {
+  background: var(--cobalt-100);
+  color: var(--cobalt-700);
+  border: 1px solid #b6cff8;
+}
+
+.tag-level-C {
+  background: var(--crimson-100);
+  color: var(--crimson-600);
+  border: 1px solid #f7b8b8;
+}
+
+/* ==========================================================================
+   КАРТОЧКИ КАТАЛОГА (С МИНИ-ЧЕРТЕЖОМ И ФОТОГРАФИЕЙ)
+   ========================================================================== */
+
+.catalog-Grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 18px;
+}
+
+.workbook-card {
+  background: var(--paper-card);
+  border: 1.5px solid var(--border-line);
+  border-radius: 7px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.workbook-card:hover {
+  transform: translate(-2px, -2px);
+  border-color: var(--forest-800);
+  box-shadow: 5px 5px 0 rgba(8, 61, 48, 0.18);
+}
+
+.workbook-card:focus-visible {
+  outline: 2px solid var(--amber-500);
+}
+
+/* Верхняя полоса карточки как на слайде презентации */
+.wb-card-topbar {
+  background: var(--forest-900);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wb-card-subject {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+}
+
+.wb-card-grade {
+  background: var(--amber-500);
+  color: var(--forest-950);
+  padding: 6px 14px;
+  font-weight: 800;
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Двойное визуальное превью карточки: фото + мини-чертёж модели */
+.wb-card-visuals {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  height: 156px;
+  border-bottom: 1px solid var(--border-soft);
+  background: #f8fbf9;
+}
+
+.wb-photo-wrap {
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--border-soft);
+}
+
+.wb-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.workbook-card:hover .wb-photo {
+  transform: scale(1.04);
+}
+
+.wb-job-ribbon {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background: rgba(5, 40, 32, 0.9);
+  color: #ffffff;
+  border-left: 3px solid var(--amber-500);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wb-schematic-preview {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-image:
+    linear-gradient(to right, rgba(11, 83, 66, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 83, 66, 0.06) 1px, transparent 1px);
+  background-size: 12px 12px;
+  overflow: hidden;
+}
+
+.wb-schematic-preview svg {
+  width: 100%;
+  max-height: 132px;
+  display: block;
+}
+
+.wb-card-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.wb-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.wb-topic-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--forest-700);
+}
+
+.wb-card-title {
+  margin: 0 0 8px;
+  font-size: 17.5px;
+  font-weight: 800;
+  line-height: 1.28;
+  color: var(--ink-900);
+}
+
+.wb-card-desc {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--ink-700);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.wb-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-line);
+}
+
+.wb-formula-pill {
+  font-family: var(--font-math);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--forest-900);
+  background: var(--forest-50);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--forest-100);
+}
+
+.wb-open-link {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--forest-800);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   СТРАНИЦА ЗАДАЧИ: ПЛАКАТНЫЙ СТИЛЬ ПРЕЗЕНТАЦИИ С 5 ВИЗУАЛЬНЫМИ ЗОНАМИ
+   ========================================================================== */
+
+.poster-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.nav-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--paper-card);
+  color: var(--ink-900);
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.nav-action-btn:hover {
+  background: var(--forest-100);
+}
+
+/* Главный лист-плакат задачи (оформлен точно в духе презентации!) */
+.poster-sheet {
+  background: var(--paper-card);
+  border: 2px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 6px 6px 0 rgba(8, 61, 48, 0.16);
+  overflow: hidden;
+}
+
+/* 1. Шапка плаката: Изумрудная полоса предмета + скошенная жёлтая лента класса */
+.poster-banner {
+  background: linear-gradient(90deg, #064436 0%, #0d6953 100%);
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  border-bottom: 3px solid var(--amber-500);
+}
+
+.poster-banner-left {
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.poster-subject-title {
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.poster-grade-flag {
+  background: linear-gradient(135deg, #f6c44e 0%, #e59f1a 100%);
+  color: var(--forest-950);
+  padding: 12px 34px 12px 42px;
+  font-size: clamp(16px, 2vw, 21px);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%);
+  white-space: nowrap;
+}
+
+/* 2. Подшапка с плашкой профессии (зелёный ярлык с иконкой как на слайде) */
+.poster-subbanner {
+  padding: 14px 22px;
+  background: #f5f9f7;
+  border-bottom: 1.5px solid var(--border-line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.job-tab-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.job-green-badge {
+  background: linear-gradient(135deg, var(--lime-600), var(--forest-700));
+  color: #ffffff;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(43, 122, 31, 0.25);
+}
+
+.poster-task-heading {
+  margin: 0;
+  font-size: clamp(19px, 2.4vw, 26px);
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+/* 3. Основная 3-колоночная плакатная сетка (в точности по композиции презентации) */
+.poster-body {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 370px 1fr 360px;
+  gap: 18px;
+  align-items: start;
+}
+
+.poster-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Универсальный блок на плакате */
+.p-box {
+  border: 1.5px solid var(--border-line);
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.p-box-hdr {
+  background: #dff0e8;
+  border-bottom: 1.5px solid #bed9cd;
+  padding: 9px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.p-box-hdr h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--forest-950);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.p-box-content {
+  padding: 14px 16px;
+}
+
+/* ВИЗУАЛЬНАЯ ЗОНА 1: Аннотированная фотография с размерными стрелками поверх фото */
+.annotated-photo-box {
+  position: relative;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--forest-950);
+}
+
+.annotated-photo-img {
+  width: 100%;
+  height: 255px;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-svg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 255px;
+  pointer-events: none;
+}
+
+.photo-overlay-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  background: var(--forest-900);
+  color: #d7ece4;
+  font-size: 12px;
+}
+
+.btn-tiny-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.btn-tiny-toggle:hover {
+  background: var(--amber-500);
+  color: var(--forest-950);
+  border-color: var(--amber-500);
+}
+
+/* ВИЗУАЛЬНАЯ ЗОНА 2: 2D Инженерный чертёж на миллиметровке */
+.blueprint-stage {
+  background-color: #f8fbf9;
+  background-image:
+    linear-gradient(to right, rgba(11, 83, 66, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 83, 66, 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+  border: 1px solid #c6dcd2;
+  border-radius: 6px;
+  padding: 10px;
+  position: relative;
+}
+
+.blueprint-stage svg {
+  width: 100%;
+  max-height: 235px;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ВИЗУАЛЬНАЯ ЗОНА 3: Интерактивная 3D модель (GeoGebra) + График зависимости */
+.geogebra-split {
+  display: grid;
+  grid-template-columns: 185px 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.geogebra-3d-card {
+  border: 1px solid #c5d9d0;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f3f8fb 0%, #e9f2f7 100%);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.geogebra-3d-canvas {
+  width: 168px;
+  height: 155px;
+  cursor: grab;
+  display: block;
+}
+
+.geogebra-3d-canvas:active {
+  cursor: grabbing;
+}
+
+.geogebra-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-700);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.chart-card {
+  border: 1px solid #c5d9d0;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card canvas {
+  width: 100%;
+  height: 185px;
+  display: block;
+}
+
+/* Ползунок параметра и быстрые пресеты */
+.lab-control-strip {
+  margin-top: 12px;
+  background: #f2f8f5;
+  border: 1px solid #bfd8cd;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.slider-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.param-title-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--forest-950);
+}
+
+.param-live-readout {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--forest-900);
+  color: var(--amber-400);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.custom-range {
+  width: 100%;
+  accent-color: var(--forest-800);
+  height: 7px;
+  cursor: pointer;
+}
+
+.preset-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.preset-btn {
+  border: 1px solid var(--border-line);
+  background: #ffffff;
+  color: var(--ink-700);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.preset-btn:hover,
+.preset-btn.active {
+  background: var(--forest-800);
+  color: #ffffff;
+  border-color: var(--forest-800);
+}
+
+/* ВИЗУАЛЬНАЯ ЗОНА 5: Динамическая таблица значений (как требуют задания GeoGebra/Excel) */
+.data-table-wrap {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.val-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+
+.val-table th,
+.val-table td {
+  border: 1px solid #c9dcd3;
+  padding: 5px 6px;
+}
+
+.val-table th {
+  background: #e3f0ea;
+  color: var(--forest-950);
+  font-weight: 700;
+}
+
+.val-table td.active-col {
+  background: var(--amber-100);
+  font-weight: 700;
+  color: var(--forest-950);
+  border-color: var(--amber-600);
+}
+
+/* ==========================================================================
+   НАСТОЯЩАЯ МАТЕМАТИЧЕСКАЯ ВЁРСТКА ФОРМУЛ (ДРОБИ, КОРНИ, ИНДЕКСЫ)
+   ========================================================================== */
+
+.math-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.math-item {
+  background: #f8fbf9;
+  border: 1px solid #cde0d7;
+  border-left: 4px solid var(--lime-600);
+  border-radius: 5px;
+  padding: 9px 12px;
+}
+
+.math-item-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-500);
+  margin-bottom: 3px;
+}
+
+.math-expr {
+  font-family: var(--font-math);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink-900);
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.math-expr i {
+  font-style: italic;
+}
+
+.m-frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.9em;
+  margin: 0 3px;
+}
+
+.m-frac .m-num {
+  border-bottom: 1.5px solid currentColor;
+  padding: 0 4px 1px;
+  line-height: 1.1;
+}
+
+.m-frac .m-den {
+  padding: 1px 4px 0;
+  line-height: 1.1;
+}
+
+.m-sqrt {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+}
+
+.m-sqrt-sym {
+  font-size: 1.15em;
+  line-height: 1;
+  margin-right: -1px;
+}
+
+.m-sqrt-body {
+  border-top: 1.5px solid currentColor;
+  padding: 1px 4px 0 2px;
+}
+
+/* Чеклист цифрового задания (зелёные галочки как в презентации) */
+.digital-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.digital-checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13.8px;
+  line-height: 1.45;
+  color: var(--ink-900);
+}
+
+.check-circle {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--lime-600);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Блок пошагового решения (Зелёные кружки 1, 2, 3, 4 как на слайде) */
+.btn-reveal-solution {
+  width: 100%;
+  border: 1.5px solid var(--forest-800);
+  background: var(--forest-800);
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.btn-reveal-solution:hover {
+  background: var(--forest-700);
+}
+
+.btn-reveal-solution.open {
+  background: var(--forest-50);
+  color: var(--forest-900);
+}
+
+.solution-box {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-line);
+}
+
+.sol-steps {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sol-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+}
+
+.sol-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--lime-600);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.sol-answer-highlight {
+  background: var(--amber-100);
+  border: 1.5px solid var(--amber-500);
+  border-radius: 6px;
+  padding: 10px 13px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--forest-950);
+}
+
+/* 4. Нижние два блока плаката: «Кәсіби бағдар» (тёмно-зелёный с мишенью) и «Ойлан!» (кремовый с лампочкой) */
+.poster-footer-grid {
+  padding: 0 20px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.poster-career-card {
+  background: var(--forest-900);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.career-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(238, 176, 43, 0.16);
+  border: 1.5px solid var(--amber-500);
+  color: var(--amber-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.poster-career-card h4 {
+  margin: 0 0 6px;
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--amber-400);
+}
+
+.poster-career-card p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #e4f5ee;
+}
+
+.poster-think-card {
+  background: var(--paper-warm);
+  border: 2px solid var(--amber-500);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.think-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--amber-100);
+  border: 1.5px solid var(--amber-600);
+  color: var(--amber-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.poster-think-card h4 {
+  margin: 0 0 8px;
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.think-numbered-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.think-numbered-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-900);
+}
+
+.think-badge-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--amber-500);
+  color: var(--forest-950);
+  font-size: 11.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   МЕТОДИЧЕСКАЯ ТАБЛИЦА И ПОДВАЛ
+   ========================================================================== */
+
+.matrix-drawer {
+  margin-top: 32px;
+  background: var(--paper-card);
+  border: 1.5px solid var(--border-line);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.matrix-drawer-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.matrix-table-wrap {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.atlas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.atlas-table th,
+.atlas-table td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border-soft);
+  text-align: left;
+}
+
+.atlas-table th {
+  background: var(--forest-50);
+  color: var(--forest-950);
+  font-weight: 800;
+}
+
+.atlas-table tr:hover td {
+  background: #f5faf7;
+}
+
+.atlas-footer {
+  background: var(--forest-950);
+  color: #9ec2b5;
+  padding: 22px 0;
+  font-size: 13px;
+  border-top: 3px solid var(--forest-700);
+  text-align: center;
+}
+
+.hide {
+  display: none !important;
+}
+
+/* ==========================================================================
+   АДАПТИВНОСТЬ (ПЛАНШЕТЫ И СМАРТФОНЫ)
+   ========================================================================== */
+
+@media (max-width: 1180px) {
+  .poster-body {
+    grid-template-columns: 1fr 1fr;
+  }
+  .poster-col:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 860px) {
+  .atlas-hero,
+  .dock-filters-bar,
+  .poster-body,
+  .poster-footer-grid,
+  .geogebra-split {
+    grid-template-columns: 1fr;
+  }
+  .catalog-Grid {
+    grid-template-columns: 1fr;
+  }
+  .geogebra-3d-card {
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .wb-card-visuals {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .wb-photo-wrap {
+    height: 160px;
+  }
+  .wb-schematic-preview {
+    height: 130px;
+  }
+  .poster-banner {
+    flex-direction: column;
+  }
+  .poster-grade-flag {
+    clip-path: none;
+    padding: 8px 20px;
+  }
+}
