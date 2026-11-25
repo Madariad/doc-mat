@@ -2508,25 +2508,26 @@ window.evaluateTaskModel = function(task, x, isSecondary = false) {
 
     // Геометрия
     case "geo_01": {
-      // Пирамида a=12, h=x: l = sqrt(h^2 + 36), S = 24*l, C = 6500*S
+      // Пирамида a=12, h=x: l = sqrt(h^2 + 36), S = 24*l (округление до 0.1 м² как в учебнике), C = 6500*S
       const l = Math.sqrt(x * x + 36);
-      const S = 24 * l;
+      const S = Math.round(24 * l * 10) / 10;
       return 6500 * S;
     }
     case "geo_02": return 40 * Math.tan(x * Math.PI / 180);
     case "geo_03": {
-      // Конус r=6, h=x: l = sqrt(36 + h^2), S = pi*6*l, C = 7500*S
+      // Конус r=6, h=x: l = sqrt(36 + h^2), S = pi*6*l (округление до 0.1 м²), C = 7500*S
       const l = Math.sqrt(36 + x * x);
-      const S = Math.PI * 6 * l;
+      const S = Math.round(Math.PI * 6 * l * 10) / 10;
       return 7500 * S;
     }
     case "geo_04": {
-      // Купол полусфера R=x: S = 2*pi*R^2, C = 9000*S
-      return 9000 * 2 * Math.PI * x * x;
+      // Купол полусфера R=x: S = 2*pi*R^2 (округление до 0.1 м²), C = 9000*S
+      const S = Math.round(2 * Math.PI * x * x * 10) / 10;
+      return 9000 * S;
     }
     case "geo_05": {
-      // Ферма моста a=18, h=x: s = sqrt(81 + h^2), P = 18 + 2s, C = 12000*P
-      const s = Math.sqrt(81 + x * x);
+      // Ферма моста a=18, h=x: s = sqrt(81 + h^2) (до 0.01 м), P = 18 + 2s, C = 12000*P
+      const s = Math.round(Math.sqrt(81 + x * x) * 100) / 100;
       return 12000 * (18 + 2 * s);
     }
     case "geo_06": {
@@ -2538,8 +2539,9 @@ window.evaluateTaskModel = function(task, x, isSecondary = false) {
       return (3 * Math.sqrt(3) / 2) * x * x;
     }
     case "geo_08": {
-      // Сфера R=x: S = 4*pi*R^2, C = 4200*S
-      return 4200 * 4 * Math.PI * x * x;
+      // Сфера R=x: S = 4*pi*R^2 (округление до 0.1 м²), C = 4200*S
+      const S = Math.round(4 * Math.PI * x * x * 10) / 10;
+      return 4200 * S;
     }
     case "geo_09": {
       // Трапеция a=30, b=18, h=x: S = 24*h

@@ -2,12 +2,11 @@
  * ============================================================================
  * МАТЕМАТИКА ЖӘНЕ МАМАНДЫҚ ӘЛЕМІ / МАТЕМАТИКА И МИР ПРОФЕССИЙ
  * Ядро интерактивной лаборатории (app.js):
- *  1. Аннотированные фотографии объектов с размерными линиями (SVG-оверлей)
- *  2. Детальные 2D инженерные чертежи и симуляторы процессов для всех 27 задач
- *  3. Интерактивная вращаемая 3D-модель (GeoGebra 3D Canvas)
- *  4. График зависимости с выноской-индикатором (как в презентации)
- *  5. Динамическая расчётная таблица значений x -> y(x)
- *  6. Настоящая типографская вёрстка математических формул (дроби, корни, индексы)
+ *  - Полная адаптивность без горизонтального скролла
+ *  - Форматирование чисел по стандарту KK/RU (пробелы тысяч, запятая дроби)
+ *  - Чистые 2D инженерные чертежи с гало-обводкой подписей (без наложений)
+ *  - Вращаемая 3D-модель (GeoGebra 3D Canvas)
+ *  - График зависимости с аккуратной выноской и динамическая таблица значений
  * ============================================================================
  */
 
@@ -58,18 +57,16 @@ const UI_TEXT = {
     bannerSubjGeo: "ГЕОМЕТРИЯ • Өндірістік есеп",
     jobLabel: "Мамандық:",
 
-    photoOverlayCaption: "Нысанның өлшемдік сұлбасы",
-    toggleOverlayOn: "Сызбаны жасыру",
-    toggleOverlayOff: "Фотодағы өлшемдерді көрсету",
+    photoOverlayCaption: "Өндірістік нысан иллюстрациясы",
 
     boxContext: "Өндірістік жағдаят",
     boxGiven: "Берілгені:",
     boxDigitalTasks: "Цифрлық тапсырма (GeoGebra / Desmos)",
     boxBlueprint: "Инженерлік сызба және математикалық модель",
-    boxInteractive: "Интерактивті 3D модель және тәуелділік графигі",
+    boxInteractive: "Интерактивті 3D модель (GeoGebra), тәуелділік графигі және мәндер кестесі",
     geogebra3dTitle: "3D модель (GeoGebra)",
     geogebra3dHint: "Тінтуірмен бұраңыз",
-    tableTitle: "Параметрдің өзгеру кестесі:",
+    tableTitle: "Параметрдің өзгеру кестесі (бағанды басып таңдаңыз):",
 
     presetTarget: "Есеп шарты",
     presetMin: "Минимум",
@@ -143,18 +140,16 @@ const UI_TEXT = {
     bannerSubjGeo: "ГЕОМЕТРИЯ • Производственная задача",
     jobLabel: "Профессия:",
 
-    photoOverlayCaption: "Инженерная разметка на объекте",
-    toggleOverlayOn: "Скрыть разметку",
-    toggleOverlayOff: "Показать размеры на фото",
+    photoOverlayCaption: "Иллюстрация производственного объекта",
 
     boxContext: "Производственная ситуация",
     boxGiven: "Исходные данные:",
     boxDigitalTasks: "Цифровое задание (GeoGebra / Desmos)",
     boxBlueprint: "Инженерный чертёж и схема модели",
-    boxInteractive: "3D-модель (GeoGebra) и график зависимости",
+    boxInteractive: "Интерактивная 3D-модель (GeoGebra), график зависимости и таблица значений",
     geogebra3dTitle: "3D модель (GeoGebra)",
     geogebra3dHint: "Вращайте мышью",
-    tableTitle: "Таблица значений при изменении параметра:",
+    tableTitle: "Таблица значений при изменении параметра (нажмите на столбец):",
 
     presetTarget: "Условие задачи",
     presetMin: "Минимум",
@@ -184,7 +179,6 @@ const UI_TEXT = {
   }
 };
 
-// Состояние приложения
 const state = {
   lang: "kk",
   subject: "all",
@@ -193,10 +187,8 @@ const state = {
   search: "",
   currentTaskId: null,
   solutionOpen: false,
-  photoOverlay: true,
   sliderVal: 0,
   matrixOpen: false,
-  // Углы вращения 3D-модели GeoGebra
   rotYaw: 0.62,
   rotPitch: 0.42,
   isDragging3D: false,
@@ -206,11 +198,40 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
-function fmt(n, d = 1) {
+/**
+ * Надёжное форматирование чисел по стандарту KK / RU:
+ * - Разделитель тысяч — неразрывный пробел (например: "1 323 400")
+ * - Дробный разделитель — запятая (например: "203,6", "8,49")
+ * - Для крупных сумм (>= 10 000) дробные копейки автоматически округляются до целых
+ */
+function fmt(n, maxDecimals = 1) {
   if (!Number.isFinite(n)) return "—";
-  return Number(n).toLocaleString(state.lang === "ru" ? "ru-RU" : "kk-KZ", {
-    maximumFractionDigits: d
-  });
+  const abs = Math.abs(n);
+  const d = abs >= 10000 ? 0 : maxDecimals;
+  const factor = Math.pow(10, d);
+  const rounded = Math.round(n * factor) / factor;
+  const parts = rounded.toFixed(d).split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  if (d > 0 && parts[1]) {
+    const trimmedDec = parts[1].replace(/0+$/, "");
+    return trimmedDec.length > 0 ? `${parts[0]},${trimmedDec}` : parts[0];
+  }
+  return parts[0];
+}
+
+/**
+ * Компактное форматирование для осей и выносок графика
+ */
+function fmtCompact(n) {
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  if (abs >= 1000000) {
+    return `${fmt(n / 1000000, 2)} млн`;
+  }
+  if (abs >= 10000) {
+    return fmt(n, 0);
+  }
+  return fmt(n, 1);
 }
 
 function getPhotoUrl(key) {
@@ -275,7 +296,7 @@ const RICH_FORMULAS = {
     { kk: "Қаптау құны:", ru: "Стоимость покрытия:", html: `<i>C</i> = 6 500 · <i>S</i><sub>бүйір</sub>` }
   ],
   "geo-02": [
-    { kk: "Бұрыштың тангенсі:", ru: "Тангенс острого угла:", html: `tan α = <span class="m-frac"><span class="m-num">қарсы катет (<i>d</i>)</span><span class="m-den">іргелес катет (40)</span></span>` },
+    { kk: "Бұрыштың тангенсі:", ru: "Тангенс острого угла:", html: `tan α = <span class="m-frac"><span class="m-num"><i>d</i></span><span class="m-den">40</span></span>` },
     { kk: "Өзен енінің формуласы:", ru: "Формула ширины реки:", html: `<i>d</i> = 40 · tan 35°` }
   ],
   "geo-03": [
@@ -476,7 +497,6 @@ function renderApp() {
   $("specGrdLbl").textContent = t.specGrdLbl;
   $("specGrdVal").textContent = t.specGrdVal;
 
-  // Вкладки предметов
   $("tabAllText").textContent = t.tabAll;
   $("tabAlgText").textContent = t.tabAlgebra;
   $("tabGeoText").textContent = t.tabGeometry;
@@ -488,7 +508,6 @@ function renderApp() {
   $("tabAlgBtn").classList.toggle("active", state.subject === "algebra");
   $("tabGeoBtn").classList.toggle("active", state.subject === "geometry");
 
-  // Фильтры уровней и классов
   $("lvlFilterTitle").textContent = t.lvlFilterTitle;
   $("lvlAllBtnText").textContent = t.lvlAll;
   $("lvlABtnText").textContent = t.lvlA;
@@ -664,13 +683,6 @@ window.stepTask = function(dir) {
   window.openTask(next.id);
 };
 
-window.togglePhotoOverlay = function() {
-  state.photoOverlay = !state.photoOverlay;
-  const t = UI_TEXT[state.lang];
-  $("photoSvgOverlay").classList.toggle("hide", !state.photoOverlay);
-  $("toggleOverlayBtn").textContent = state.photoOverlay ? t.toggleOverlayOn : t.toggleOverlayOff;
-};
-
 window.toggleSolutionBox = function() {
   state.solutionOpen = !state.solutionOpen;
   const t = UI_TEXT[state.lang];
@@ -700,7 +712,6 @@ function renderPosterDetail() {
   $("prevTaskBtn").textContent = t.prevTask;
   $("nextTaskBtn").textContent = t.nextTask;
 
-  // Верхний баннер плаката
   $("posterSubjectTitle").textContent = `${task.subject === "algebra" ? t.bannerSubjAlg : t.bannerSubjGeo} • ${task.code}`;
   $("posterGradeFlag").textContent = `${task.grade}${t.gradeSuffix}`;
 
@@ -711,18 +722,18 @@ function renderPosterDetail() {
     <span class="tech-tag ${task.subject === 'algebra' ? 'tag-subject-algebra' : 'tag-subject-geometry'}">${loc.topic}</span>
   `;
 
-  // Левая колонка: Аннотированное фото + Условие + Цифровое задание
+  // Колонка 1: Иллюстрация + Условие
   $("taskMainPhoto").src = getPhotoUrl(task.image);
   $("taskMainPhoto").alt = loc.job;
-  $("photoOverlayCaption").textContent = t.photoOverlayCaption;
-  $("toggleOverlayBtn").textContent = state.photoOverlay ? t.toggleOverlayOn : t.toggleOverlayOff;
-  $("photoSvgOverlay").classList.toggle("hide", !state.photoOverlay);
+  $("photoOverlayCaption").textContent = loc.tag;
 
   $("boxContextTitle").textContent = t.boxContext;
   $("taskProblemParagraph").textContent = loc.problem;
   $("boxGivenLabel").textContent = t.boxGiven;
   $("taskGivenUl").innerHTML = loc.given.map(g => `<li>${g}</li>`).join("");
 
+  // Колонка 2: 2D Чертёж + Цифровое задание
+  $("boxBlueprintTitle").textContent = t.boxBlueprint;
   $("boxDigitalTasksTitle").textContent = t.boxDigitalTasks;
   $("digitalChecklistUl").innerHTML = loc.tasks.map(item => `
     <li>
@@ -733,34 +744,7 @@ function renderPosterDetail() {
     </li>
   `).join("");
 
-  // Центральная колонка: 2D чертёж + 3D модель GeoGebra + График + Ползунок + Таблица
-  $("boxBlueprintTitle").textContent = t.boxBlueprint;
-  $("boxInteractiveTitle").textContent = t.boxInteractive;
-  $("geogebra3dTitle").textContent = t.geogebra3dTitle;
-  $("geogebra3dHint").textContent = t.geogebra3dHint;
-
-  const rInput = $("paramRangeInput");
-  rInput.min = task.research.min;
-  rInput.max = task.research.max;
-  rInput.step = task.research.step;
-  rInput.value = state.sliderVal;
-  $("paramTitleText").textContent = loc.paramLabel;
-
-  // Быстрые кнопки пресетов параметра
-  const minV = task.research.min;
-  const maxV = task.research.max;
-  const targetV = task.research.targetValue;
-  const midV = Number(((minV + maxV) / 2).toFixed(1));
-  $("presetPillsBox").innerHTML = `
-    <button class="preset-btn" onclick="setParamPreset(${targetV})">${t.presetTarget} (${fmt(targetV, 1)} ${loc.unit})</button>
-    <button class="preset-btn" onclick="setParamPreset(${minV})">${t.presetMin} (${minV})</button>
-    <button class="preset-btn" onclick="setParamPreset(${midV})">${t.presetMid} (${midV})</button>
-    <button class="preset-btn" onclick="setParamPreset(${maxV})">${t.presetMax} (${maxV})</button>
-  `;
-
-  $("tableTitleText").textContent = t.tableTitle;
-
-  // Правая колонка: Математические формулы + Пошаговое решение
+  // Колонка 3: Формулы + Пошаговое решение
   $("boxFormulasTitle").textContent = t.boxFormulas;
   const richList = RICH_FORMULAS[task.id] || [];
   $("mathFormulasList").innerHTML = richList.map(item => `
@@ -783,7 +767,32 @@ function renderPosterDetail() {
   `).join("");
   $("solAnswerHighlight").innerHTML = `${t.answerWord} ${loc.answer}`;
 
-  // Нижние карточки: Кәсіби бағдар и Ойлан!
+  // Ряд 2 (на всю ширину): 3D модель GeoGebra + График зависимости + Ползунок + Таблица
+  $("boxInteractiveTitle").textContent = t.boxInteractive;
+  $("geogebra3dTitle").textContent = t.geogebra3dTitle;
+  $("geogebra3dHint").textContent = t.geogebra3dHint;
+
+  const rInput = $("paramRangeInput");
+  rInput.min = task.research.min;
+  rInput.max = task.research.max;
+  rInput.step = task.research.step;
+  rInput.value = state.sliderVal;
+  $("paramTitleText").textContent = loc.paramLabel;
+
+  const minV = task.research.min;
+  const maxV = task.research.max;
+  const targetV = task.research.targetValue;
+  const midV = Number(((minV + maxV) / 2).toFixed(1));
+  $("presetPillsBox").innerHTML = `
+    <button class="preset-btn" onclick="setParamPreset(${targetV})">${t.presetTarget} (${fmt(targetV, 1)} ${loc.unit})</button>
+    <button class="preset-btn" onclick="setParamPreset(${minV})">${t.presetMin} (${fmt(minV, 1)})</button>
+    <button class="preset-btn" onclick="setParamPreset(${midV})">${t.presetMid} (${fmt(midV, 1)})</button>
+    <button class="preset-btn" onclick="setParamPreset(${maxV})">${t.presetMax} (${fmt(maxV, 1)})</button>
+  `;
+
+  $("tableTitleText").textContent = t.tableTitle;
+
+  // Нижние блоки: Кәсіби бағдар и Ойлан!
   $("careerTitleText").textContent = t.careerTitle;
   $("careerDescText").textContent = loc.career;
 
@@ -799,7 +808,7 @@ function renderPosterDetail() {
 }
 
 // ============================================================================
-// ОБНОВЛЕНИЕ ВСЕХ 5 ВИЗУАЛЬНЫХ ЗОН ЗАДАЧИ В РЕАЛЬНОМ ВРЕМЕНИ
+// ОБНОВЛЕНИЕ ВСЕХ ВИЗУАЛЬНЫХ ЗОН ЗАДАЧИ В РЕАЛЬНОМ ВРЕМЕНИ
 // ============================================================================
 
 function updateAllTaskVisuals() {
@@ -810,8 +819,8 @@ function updateAllTaskVisuals() {
   const y1 = window.evaluateTaskModel(task, x, false);
   const y2 = task.research.secondFnType ? window.evaluateTaskModel(task, x, true) : null;
 
-  // 1. Индикатор над ползунком
-  let readoutStr = `${fmt(x, 2)} ${loc.unit}  →  ${loc.yLabel}: ${fmt(y1, 2)} ${loc.yUnit}`;
+  // 1. Индикатор над ползунком и статус под фото
+  let readoutStr = `${fmt(x, 2)} ${loc.unit} → ${loc.yLabel}: ${fmt(y1, 2)} ${loc.yUnit}`;
   if (y2 !== null) {
     readoutStr += ` | II: ${fmt(y2, 2)} ${loc.yUnit}`;
   }
@@ -819,195 +828,65 @@ function updateAllTaskVisuals() {
     readoutStr += ` | V = ${fmt(x * x * x + x * x, 2)} л`;
   }
   $("paramLiveReadout").textContent = readoutStr;
+  $("photoLiveBadge").textContent = `${fmt(x, 1)} ${loc.unit} → ${fmt(y1, 1)} ${loc.yUnit}`;
 
-  // 2. ЗОНА 1: Чертёжная разметка поверх фотографии объекта
-  $("photoSvgOverlay").innerHTML = buildPhotoAnnotationOverlay(task, x, y1);
-
-  // 3. ЗОНА 2: Детальный 2D инженерный чертёж / симулятор
+  // 2. Детальный 2D инженерный чертёж / симулятор
   $("blueprintStageBox").innerHTML = buildDynamicSvgDiagram(task, x, y1, y2);
 
-  // 4. ЗОНА 3: Интерактивная 3D модель GeoGebra
+  // 3. Интерактивная 3D модель GeoGebra
   drawGeoGebra3D(task, x);
 
-  // 5. ЗОНА 4: График зависимости с жёлтой выноской
+  // 4. График зависимости с выноской
   drawDependencyChart(task, x, y1, y2);
 
-  // 6. ЗОНА 5: Динамическая таблица значений x -> y(x)
+  // 5. Динамическая таблица значений x -> y(x)
   renderParameterTable(task, x);
 }
 
 // ============================================================================
-// ВИЗУАЛЬНАЯ ЗОНА 1: РАЗМЕРНЫЕ ЛИНИИ ПОВЕРХ ФОТОГРАФИИ (КАК В ПРЕЗЕНТАЦИИ)
-// ============================================================================
-
-function buildPhotoAnnotationOverlay(task, x, y1) {
-  const badge = (bx, by, text, bg = "#ffffff", fg = "#083d30") => {
-    const w = Math.max(76, text.length * 8 + 18);
-    return `
-      <g transform="translate(${bx - w / 2}, ${by - 14})">
-        <rect x="0" y="0" width="${w}" height="26" rx="5" fill="${bg}" stroke="#083d30" stroke-width="1.5" opacity="0.94"/>
-        <text x="${w / 2}" y="17" text-anchor="middle" font-size="12.5" font-weight="800" fill="${fg}">${text}</text>
-      </g>
-    `;
-  };
-
-  const defs = `
-    <defs>
-      <marker id="arrW" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-        <path d="M 0 1 L 10 5 L 0 9 z" fill="#ffffff"/>
-      </marker>
-      <marker id="arrY" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-        <path d="M 0 1 L 10 5 L 0 9 z" fill="#f6c44e"/>
-      </marker>
-    </defs>
-  `;
-
-  switch (task.id) {
-    case "geo-01":
-    case "geo-17":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="185" y1="32" x2="185" y2="128" stroke="#ffffff" stroke-width="2.2" stroke-dasharray="4 3" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        <line x1="65" y1="145" x2="225" y2="165" stroke="#ffffff" stroke-width="2.2" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(225, 82, `h = ${fmt(x, 1)} м`)}
-        ${badge(145, 172, `a = 12 м`)}
-      </svg>`;
-
-    case "geo-02":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="145" y1="175" x2="315" y2="175" stroke="#ffffff" stroke-width="2.4" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        <line x1="315" y1="175" x2="315" y2="105" stroke="#f6c44e" stroke-width="2.4" stroke-dasharray="4 3" marker-start="url(#arrY)" marker-end="url(#arrY)"/>
-        <line x1="145" y1="175" x2="315" y2="105" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 3"/>
-        ${badge(190, 148, `${fmt(x, 0)}°`)}
-        ${badge(235, 198, `40 м`)}
-        ${badge(315, 85, `d ≈ ${fmt(y1, 1)} м`, "#f6c44e", "#052820")}
-      </svg>`;
-
-    case "geo-03":
-    case "geo-15":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="180" y1="30" x2="180" y2="132" stroke="#ffffff" stroke-width="2.2" stroke-dasharray="4 3" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        <line x1="180" y1="132" x2="305" y2="132" stroke="#ffffff" stroke-width="2.2" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(222, 82, `h = ${fmt(x, 1)} м`)}
-        ${badge(245, 154, `r = ${task.id === "geo-03" ? 6 : 3} м`)}
-      </svg>`;
-
-    case "geo-04":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="180" y1="45" x2="180" y2="142" stroke="#ffffff" stroke-width="2.4" stroke-dasharray="4 3" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(222, 96, `R = ${fmt(x, 1)} м`)}
-      </svg>`;
-
-    case "geo-05":
-    case "geo-12":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="180" y1="56" x2="180" y2="148" stroke="#ffffff" stroke-width="2.2" stroke-dasharray="4 3" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        <line x1="48" y1="162" x2="312" y2="162" stroke="#ffffff" stroke-width="2.4" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(220, 102, `h = ${fmt(x, 1)} м`)}
-        ${badge(180, 185, `a = ${task.id === "geo-05" ? 18 : 16} м`)}
-      </svg>`;
-
-    case "geo-06":
-    case "geo-11":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="70" y1="210" x2="275" y2="140" stroke="#f6c44e" stroke-width="2.5" marker-start="url(#arrY)" marker-end="url(#arrY)"/>
-        <line x1="285" y1="140" x2="285" y2="210" stroke="#ffffff" stroke-width="2.2" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(160, 198, `α = ${fmt(x, 0)}°`)}
-        ${badge(305, 175, task.id === "geo-06" ? "h = 1,2 м" : `h ≈ ${fmt(y1, 2)} м`, "#f6c44e", "#052820")}
-      </svg>`;
-
-    case "geo-07":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="95" y1="205" x2="265" y2="205" stroke="#ffffff" stroke-width="2.5" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(180, 226, `a = ${fmt(x, 1)} м`)}
-      </svg>`;
-
-    case "geo-08":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="185" y1="118" x2="288" y2="95" stroke="#083d30" stroke-width="2.5" marker-end="url(#arrW)"/>
-        <circle cx="185" cy="118" r="4" fill="#083d30"/>
-        ${badge(235, 80, `R = ${fmt(x, 1)} м`)}
-      </svg>`;
-
-    case "geo-09":
-    case "geo-14":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="135" y1="95" x2="245" y2="95" stroke="#ffffff" stroke-width="2.2" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        <line x1="190" y1="95" x2="190" y2="195" stroke="#f6c44e" stroke-width="2.2" stroke-dasharray="4 3" marker-start="url(#arrY)" marker-end="url(#arrY)"/>
-        <line x1="85" y1="195" x2="310" y2="195" stroke="#ffffff" stroke-width="2.4" marker-start="url(#arrW)" marker-end="url(#arrW)"/>
-        ${badge(190, 76, task.id === "geo-09" ? "b = 18 м" : "AB = 80 м")}
-        ${badge(230, 145, `${task.id === "geo-09" ? "h" : "b"} = ${fmt(x, 0)} м`, "#f6c44e", "#052820")}
-        ${badge(195, 218, task.id === "geo-09" ? "a = 30 м" : `S = ${fmt(y1, 0)} м²`)}
-      </svg>`;
-
-    case "geo-10":
-    case "geo-16":
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        <line x1="175" y1="150" x2="310" y2="150" stroke="#ffffff" stroke-width="2.5" marker-end="url(#arrW)"/>
-        <circle cx="175" cy="150" r="4" fill="#f6c44e"/>
-        ${badge(245, 128, task.id === "geo-10" ? `R = ${fmt(x, 0)} м` : `c = ${fmt(x, 1)} м`)}
-      </svg>`;
-
-    default: {
-      const loc = task[state.lang];
-      return `<svg viewBox="0 0 360 255" xmlns="http://www.w3.org/2000/svg">${defs}
-        ${badge(180, 215, `${loc.paramLabel}: ${fmt(x, 1)} ${loc.unit} → ${fmt(y1, 1)} ${loc.yUnit}`, "#083d30", "#f6c44e")}
-      </svg>`;
-    }
-  }
-}
-
-// ============================================================================
-// ВИЗУАЛЬНАЯ ЗОНА 2: 2D ИНЖЕНЕРНЫЕ ЧЕРТЕЖИ И СИМУЛЯТОРЫ ПРОЦЕССОВ (ДЛЯ ВСЕХ 27 ЗАДАЧ!)
+// 2D ИНЖЕНЕРНЫЕ ЧЕРТЕЖИ И СИМУЛЯТОРЫ ПРОЦЕССОВ (БЕЗ НАЛОЖЕНИЯ ТЕКСТА НА ЛИНИИ)
 // ============================================================================
 
 function buildDynamicSvgDiagram(task, x, y1, y2) {
   switch (task.diagram) {
-    // --- АЛГЕБРА 1: Мұнай инженері (Нефтяная качалка + резервуар + индикатор прибыли) ---
+    // --- АЛГЕБРА 1: Мұнай инженері ---
     case "alg_oil": {
       const fillH = Math.min(85, Math.max(6, (x / 20) * 85));
       const profitBarH = Math.min(75, Math.max(4, ((y1 + 96) / 200) * 75));
       const isProfit = y1 >= 0;
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <!-- Земля и скважина -->
           <line x1="20" y1="165" x2="340" y2="165" stroke="#173f33" stroke-width="2"/>
-          <!-- Вышка-качалка -->
           <polygon points="45,165 85,165 65,85" fill="none" stroke="#083d30" stroke-width="2.5"/>
           <line x1="35" y1="95" x2="105" y2="75" stroke="#0b5342" stroke-width="4" stroke-linecap="round"/>
           <path d="M 102,72 Q 114,82 106,96 L 98,92 Z" fill="#eeb02b" stroke="#083d30" stroke-width="1.5"/>
           <line x1="105" y1="95" x2="105" y2="165" stroke="#dc2626" stroke-width="2" stroke-dasharray="4 2"/>
-          <!-- Трубопровод в резервуар -->
           <path d="M 105,152 L 145,152" stroke="#083d30" stroke-width="3"/>
-          <!-- Резервуар добычи x (тонн) -->
           <rect x="145" y="75" width="70" height="90" rx="6" fill="#e6f2ed" stroke="#083d30" stroke-width="2"/>
           <rect x="147" y="${163 - fillH}" width="66" height="${fillH}" rx="4" fill="#0f6a55"/>
           <text x="180" y="65" text-anchor="middle" font-size="11.5" font-weight="800" fill="#083d30">x = ${fmt(x, 1)} т</text>
-          <text x="180" y="125" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">${fmt((x / 20) * 100, 0)}%</text>
-          <!-- Шкала прибыли P(x) -->
+          <text x="180" y="125" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">${fmt((x / 20) * 100, 0)}%</text>
           <rect x="245" y="75" width="75" height="90" rx="6" fill="#fcf8ea" stroke="#c78309" stroke-width="2"/>
           <rect x="255" y="${160 - profitBarH}" width="55" height="${profitBarH}" rx="3" fill="${isProfit ? '#379628' : '#c92a2a'}"/>
           <text x="282" y="65" text-anchor="middle" font-size="11.5" font-weight="800" fill="#083d30">P(x)</text>
           <text x="282" y="185" text-anchor="middle" font-size="12.5" font-weight="800" fill="${isProfit ? '#1e6414' : '#c92a2a'}">${fmt(y1, 1)} мың ₸</text>
-          <text x="90" y="185" text-anchor="middle" font-size="11.5" font-weight="700" fill="#556b65">Optimum: x = 10 т (104 мың ₸)</text>
+          <text x="90" y="185" text-anchor="middle" font-size="11.5" font-weight="700" fill="#556b65">Max: x = 10 т (104 мың ₸)</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 2: Логист (Трасса 0..80 км и сравнение двух перевозчиков) ---
+    // --- АЛГЕБРА 2: Логист ---
     case "alg_logistics": {
       const truckX = 45 + (x / 80) * 255;
       const w1 = Math.min(220, (y1 / 25000) * 220);
       const w2 = Math.min(220, ((y2 || 0) / 25000) * 220);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <!-- Трасса -->
-          <text x="30" y="30" font-size="11.5" font-weight="800" fill="#083d30">МАРШРУТ: 0 — 80 км (Қиылысу: 40 км)</text>
+          <text x="30" y="30" font-size="11.5" font-weight="800" fill="#083d30">МАРШРУТ: 0 — 80 км (Теңесу нүктесі: 40 км)</text>
           <line x1="45" y1="68" x2="310" y2="68" stroke="#2d423c" stroke-width="6" stroke-linecap="round"/>
           <line x1="45" y1="68" x2="310" y2="68" stroke="#f6c44e" stroke-width="1.5" stroke-dasharray="6 5"/>
-          <!-- Отметка 40 км -->
           <line x1="177.5" y1="48" x2="177.5" y2="85" stroke="#c92a2a" stroke-width="2" stroke-dasharray="3 2"/>
           <text x="177.5" y="44" text-anchor="middle" font-size="10.5" font-weight="800" fill="#c92a2a">40 км</text>
-          <!-- Грузовик на текущем расстоянии x -->
           <g transform="translate(${truckX - 18}, 46)">
             <rect x="0" y="2" width="24" height="14" rx="2" fill="#0f6a55"/>
             <rect x="24" y="6" width="10" height="10" rx="2" fill="#eeb02b"/>
@@ -1015,7 +894,6 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
             <circle cx="27" cy="17" r="3.5" fill="#13231f"/>
           </g>
           <text x="${truckX}" y="98" text-anchor="middle" font-size="12" font-weight="800" fill="#083d30">x = ${fmt(x, 0)} км</text>
-          <!-- Сравнение стоимости C1 и C2 -->
           <text x="30" y="128" font-size="12" font-weight="800" fill="#0f6a55">C₁(x) = ${fmt(y1, 0)} ₸</text>
           <rect x="30" y="134" width="${w1}" height="14" rx="3" fill="#0f6a55"/>
           <text x="30" y="168" font-size="12" font-weight="800" fill="#c78309">C₂(x) = ${fmt(y2, 0)} ₸</text>
@@ -1024,93 +902,85 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- АЛГЕБРА 3: Энергетик (Промышленный электросчётчик и шкала смены) ---
+    // --- АЛГЕБРА 3: Энергетик ---
     case "alg_energy": {
       const pureE = y1 - 20;
       const barW = Math.min(250, (x / 16) * 250);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
           <rect x="30" y="22" width="300" height="82" rx="8" fill="#083d30" stroke="#eeb02b" stroke-width="2"/>
-          <text x="46" y="45" font-size="11" font-weight="700" fill="#9ec2b5">ЭЛЕКТР ЕСЕПТЕГІШІ / СЧЁТЧИК E(t) = 15t + 20</text>
+          <text x="46" y="45" font-size="11" font-weight="700" fill="#9ec2b5" style="stroke:none;">ЭЛЕКТР ЕСЕПТЕГІШІ · E(t) = 15t + 20</text>
           <rect x="46" y="54" width="160" height="36" rx="4" fill="#052820" stroke="#379628" stroke-width="1.5"/>
-          <text x="126" y="78" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="20" font-weight="800" fill="#f6c44e">${fmt(y1, 1)} кВт·сағ</text>
-          <text x="270" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#c7e3d9">Таза шығын ΔE:</text>
-          <text x="270" y="88" text-anchor="middle" font-size="16" font-weight="800" fill="#48b037">+${fmt(pureE, 1)}</text>
-          <!-- Шкала времени t -->
-          <text x="35" y="132" font-size="12" font-weight="800" fill="#083d30">Жұмыс уақыты: t = ${fmt(x, 1)} сағ (Бастапқы E(0) = 20)</text>
+          <text x="126" y="78" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="18" font-weight="800" fill="#f6c44e" style="stroke:none;">${fmt(y1, 1)} кВт·сағ</text>
+          <text x="270" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#c7e3d9" style="stroke:none;">Таза шығын ΔE:</text>
+          <text x="270" y="88" text-anchor="middle" font-size="16" font-weight="800" fill="#48b037" style="stroke:none;">+${fmt(pureE, 1)}</text>
+          <text x="35" y="132" font-size="12" font-weight="800" fill="#083d30">Жұмыс уақыты: t = ${fmt(x, 1)} сағ (E(0) = 20)</text>
           <rect x="35" y="142" width="290" height="22" rx="5" fill="#dce6e1"/>
           <rect x="35" y="142" width="40" height="22" rx="5" fill="#9eb0aa"/>
           <rect x="75" y="142" width="${barW}" height="22" rx="4" fill="#379628"/>
           <text x="55" y="157" text-anchor="middle" font-size="10" font-weight="800" fill="#13231f">20</text>
-          <text x="180" y="186" text-anchor="middle" font-size="12" font-weight="700" fill="#2d423c">8 сағаттық ауысымда: E(8) = 140 кВт·сағ (ΔE = 120)</text>
+          <text x="180" y="186" text-anchor="middle" font-size="12" font-weight="700" fill="#2d423c">8 сағатта: E(8) = 140 кВт·сағ (ΔE = 120)</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 4: Агроном (Доза удобрений и высота/густота колосьев пшеницы) ---
+    // --- АЛГЕБРА 4: Агроном ---
     case "alg_agronom": {
       const stalkH = Math.max(25, ((y1 - 15) / 25) * 95);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
           <rect x="25" y="150" width="310" height="36" rx="4" fill="#6b4423"/>
-          <text x="180" y="173" text-anchor="middle" font-size="12" font-weight="800" fill="#fdf1cf">Топырақ · Тыңайтқыш мөлшері x = ${fmt(x, 1)} (Optimum: x = 6)</text>
-          <!-- Колосья пшеницы, растущие в зависимости от y(x) -->
+          <text x="180" y="173" text-anchor="middle" font-size="12" font-weight="800" fill="#fdf1cf" style="stroke:none;">Топырақ · Тыңайтқыш мөлшері x = ${fmt(x, 1)} (Optimum: x = 6)</text>
           ${[65, 105, 145, 185, 225, 265, 300].map((px) => `
             <g>
               <line x1="${px}" y1="150" x2="${px}" y2="${150 - stalkH}" stroke="#379628" stroke-width="3"/>
               <ellipse cx="${px}" cy="${145 - stalkH}" rx="6" ry="13" fill="#eeb02b" stroke="#92400e" stroke-width="1.2"/>
             </g>
           `).join("")}
-          <rect x="95" y="16" width="170" height="30" rx="6" fill="#083d30"/>
-          <text x="180" y="36" text-anchor="middle" font-size="13.5" font-weight="800" fill="#f6c44e">Өнімділік y = ${fmt(y1, 1)} ц/га</text>
+          <rect x="90" y="16" width="180" height="30" rx="6" fill="#083d30"/>
+          <text x="180" y="36" text-anchor="middle" font-size="13.5" font-weight="800" fill="#f6c44e" style="stroke:none;">Өнімділік y = ${fmt(y1, 1)} ц/га</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 5: Өндіріс экономисі (Точка безубыточности: Выручка vs Затраты) ---
+    // --- АЛГЕБРА 5: Өндіріс экономисі ---
     case "alg_breakeven": {
       const rev = y1;
       const cost = y2 || (60000 + 700 * x);
       const profit = rev - cost;
-      const hRev = Math.min(110, (rev / 264000) * 110);
-      const hCost = Math.min(110, (cost / 264000) * 110);
+      const hRev = Math.min(105, (rev / 264000) * 105);
+      const hCost = Math.min(105, (cost / 264000) * 105);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <line x1="35" y1="162" x2="325" y2="162" stroke="#173f33" stroke-width="2"/>
-          <!-- Столбец Выручки R(x) -->
-          <rect x="65" y="${162 - hRev}" width="65" height="${hRev}" rx="4" fill="#0f6a55"/>
-          <text x="97" y="${155 - hRev}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#0f6a55">R = ${fmt(rev, 0)} ₸</text>
-          <text x="97" y="180" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">Түсім R(x)</text>
-          <!-- Столбец Затрат C(x) -->
-          <rect x="155" y="${162 - hCost}" width="65" height="${hCost}" rx="4" fill="#eeb02b"/>
-          <text x="187" y="${155 - hCost}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#b45309">C = ${fmt(cost, 0)} ₸</text>
-          <text x="187" y="180" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">Шығын C(x)</text>
-          <!-- Индикатор чистой прибыли P(x) -->
-          <rect x="240" y="65" width="95" height="80" rx="6" fill="${profit >= 0 ? '#e3f5df' : '#ffe3e3'}" stroke="${profit >= 0 ? '#2b7a1f' : '#c92a2a'}" stroke-width="2"/>
-          <text x="287" y="92" text-anchor="middle" font-size="11.5" font-weight="800" fill="#13231f">${profit >= 0 ? 'ТАЗА ПАЙДА' : 'ШЫҒЫН'}</text>
-          <text x="287" y="116" text-anchor="middle" font-size="14" font-weight="800" fill="${profit >= 0 ? '#2b7a1f' : '#c92a2a'}">${profit >= 0 ? '+' : ''}${fmt(profit, 0)} ₸</text>
-          <text x="287" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#556b65">x = ${fmt(x, 0)} дана</text>
+          <line x1="30" y1="162" x2="330" y2="162" stroke="#173f33" stroke-width="2"/>
+          <rect x="55" y="${162 - hRev}" width="64" height="${hRev}" rx="4" fill="#0f6a55"/>
+          <text x="87" y="${154 - hRev}" text-anchor="middle" font-size="11" font-weight="800" fill="#0f6a55">${fmt(rev, 0)} ₸</text>
+          <text x="87" y="180" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">Түсім R(x)</text>
+          <rect x="148" y="${162 - hCost}" width="64" height="${hCost}" rx="4" fill="#eeb02b"/>
+          <text x="180" y="${154 - hCost}" text-anchor="middle" font-size="11" font-weight="800" fill="#b45309">${fmt(cost, 0)} ₸</text>
+          <text x="180" y="180" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">Шығын C(x)</text>
+          <rect x="235" y="65" width="102" height="80" rx="6" fill="${profit >= 0 ? '#e3f5df' : '#ffe3e3'}" stroke="${profit >= 0 ? '#2b7a1f' : '#c92a2a'}" stroke-width="2"/>
+          <text x="286" y="92" text-anchor="middle" font-size="11.5" font-weight="800" fill="#13231f">${profit >= 0 ? 'ТАЗА ПАЙДА' : 'ШЫҒЫН'}</text>
+          <text x="286" y="115" text-anchor="middle" font-size="13" font-weight="800" fill="${profit >= 0 ? '#2b7a1f' : '#c92a2a'}">${profit >= 0 ? '+' : ''}${fmt(profit, 0)} ₸</text>
+          <text x="286" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#556b65">x = ${fmt(x, 0)} дана</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 6: Инженер-эколог (Многоступенчатый фильтр очистки воды) ---
+    // --- АЛГЕБРА 6: Инженер-эколог ---
     case "alg_ecolog": {
       const reduction = 100 - y1;
       const opacityDirty = Math.max(0.12, y1 / 100);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <!-- Входной резервуар L(0)=100 -->
           <rect x="28" y="55" width="80" height="100" rx="6" fill="rgba(120,90,50,0.65)" stroke="#173f33" stroke-width="2"/>
           <text x="68" y="45" text-anchor="middle" font-size="11.5" font-weight="800" fill="#13231f">L(0) = 100</text>
-          <text x="68" y="110" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">100%</text>
-          <!-- Блок фильтрации -->
+          <text x="68" y="110" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">100%</text>
           <rect x="135" y="70" width="90" height="70" rx="6" fill="#dff0e8" stroke="#083d30" stroke-width="2.2"/>
           <line x1="160" y1="70" x2="160" y2="140" stroke="#0f6a55" stroke-width="2" stroke-dasharray="4 3"/>
           <line x1="180" y1="70" x2="180" y2="140" stroke="#0f6a55" stroke-width="2" stroke-dasharray="4 3"/>
           <line x1="200" y1="70" x2="200" y2="140" stroke="#0f6a55" stroke-width="2" stroke-dasharray="4 3"/>
           <text x="180" y="56" text-anchor="middle" font-size="12" font-weight="800" fill="#083d30">t = ${fmt(x, 2)} күн</text>
-          <!-- Выходной резервуар L(t) -->
           <rect x="252" y="55" width="80" height="100" rx="6" fill="rgba(36,102,216,0.22)" stroke="#1852b8" stroke-width="2"/>
           <rect x="254" y="65" width="76" height="88" rx="4" fill="rgba(120,90,50,${opacityDirty.toFixed(2)})"/>
           <text x="292" y="45" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1852b8">L(t) = ${fmt(y1, 1)}</text>
@@ -1119,63 +989,54 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- АЛГЕБРА 8: Өнеркәсіп технологы (Оптимизация размера партии C(x)) ---
+    // --- АЛГЕБРА 8: Өнеркәсіп технологы ---
     case "alg_tehnolog": {
       const barH = Math.min(105, ((y1 - 250) / 300) * 105);
       const isOpt = Math.abs(x - 100) <= 6;
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <rect x="30" y="30" width="300" height="145" rx="8" fill="#f8fbf9" stroke="#bed9cd" stroke-width="1.5"/>
-          <text x="180" y="54" text-anchor="middle" font-size="13" font-weight="800" fill="#083d30">Партия көлемі: x = ${fmt(x, 0)} дана</text>
-          <!-- Конвейер с коробками -->
-          <line x1="55" y1="130" x2="225" y2="130" stroke="#173f33" stroke-width="4" stroke-linecap="round"/>
-          ${[65, 100, 135, 170, 200].slice(0, Math.max(1, Math.min(5, Math.round(x / 40)))).map(bx => `
+          <rect x="25" y="25" width="310" height="155" rx="8" fill="#f8fbf9" stroke="#bed9cd" stroke-width="1.5"/>
+          <text x="180" y="50" text-anchor="middle" font-size="13" font-weight="800" fill="#083d30">Партия көлемі: x = ${fmt(x, 0)} дана</text>
+          <line x1="50" y1="130" x2="225" y2="130" stroke="#173f33" stroke-width="4" stroke-linecap="round"/>
+          ${[60, 95, 130, 165, 198].slice(0, Math.max(1, Math.min(5, Math.round(x / 40)))).map(bx => `
             <rect x="${bx}" y="102" width="24" height="24" rx="3" fill="#eeb02b" stroke="#083d30" stroke-width="1.5"/>
           `).join("")}
-          <!-- Индикатор затрат -->
           <rect x="255" y="${152 - barH}" width="46" height="${barH}" rx="4" fill="${isOpt ? '#379628' : '#2466d8'}"/>
           <text x="278" y="168" text-anchor="middle" font-size="12" font-weight="800" fill="#13231f">C = ${fmt(y1, 1)}</text>
-          <text x="140" y="160" text-anchor="middle" font-size="12" font-weight="800" fill="#2b7a1f">Минимум: x = 100 дана ⇒ C = 300</text>
+          <text x="138" y="162" text-anchor="middle" font-size="12" font-weight="800" fill="#2b7a1f">Минимум: x = 100 дана ⇒ C = 300</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 9: Автоматтандыру инженері (Трубопровод, датчик потока и наполняемый бак V = ∫q(t)dt) ---
+    // --- АЛГЕБРА 9: Автоматтандыру инженері ---
     case "alg_integral": {
-      const vol = x * x * x + x * x; // max at x=3 is 36 L
+      const vol = x * x * x + x * x;
       const fillH = Math.min(95, (vol / 36) * 95);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <!-- Труба с расходомером -->
           <rect x="25" y="52" width="145" height="22" rx="4" fill="#9eb0aa" stroke="#173f33" stroke-width="2"/>
-          <circle cx="95" cy="42" r="20" fill="#ffffff" stroke="#083d30" stroke-width="2.5"/>
+          <circle cx="95" cy="42" r="21" fill="#ffffff" stroke="#083d30" stroke-width="2.5"/>
           <text x="95" y="46" text-anchor="middle" font-size="10.5" font-weight="800" fill="#083d30">${fmt(y1, 1)} л/с</text>
           <text x="95" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="#083d30">Сенсор q(t)</text>
-          <!-- Струя жидкости -->
           <path d="M 170,63 Q 210,63 215,90 L 215,165" fill="none" stroke="#2466d8" stroke-width="${Math.max(2, Math.min(10, y1 / 3))}" stroke-dasharray="5 3"/>
-          <!-- Мерный резервуар (интеграл V) -->
-          <rect x="180" y="65" width="130" height="105" rx="6" fill="#eff6ff" stroke="#1852b8" stroke-width="2.2"/>
-          <rect x="182" y="${168 - fillH}" width="126" height="${fillH}" rx="4" fill="rgba(36, 102, 216, 0.45)"/>
-          <text x="245" y="115" text-anchor="middle" font-size="14" font-weight="800" fill="#0f172a">V = ${fmt(vol, 2)} л</text>
-          <text x="245" y="135" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1852b8">∫₀ᵀ (3t²+2t)dt (T=${fmt(x, 1)} с)</text>
+          <rect x="180" y="65" width="135" height="105" rx="6" fill="#eff6ff" stroke="#1852b8" stroke-width="2.2"/>
+          <rect x="182" y="${168 - fillH}" width="131" height="${fillH}" rx="4" fill="rgba(36, 102, 216, 0.45)"/>
+          <text x="247" y="114" text-anchor="middle" font-size="14" font-weight="800" fill="#0f172a">V = ${fmt(vol, 2)} л</text>
+          <text x="247" y="135" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1852b8">∫₀ᵀ (3t²+2t)dt (T=${fmt(x, 1)} с)</text>
         </svg>
       `;
     }
 
-    // --- АЛГЕБРА 10: Дрон-картограф (Траектория полёта дрона и конус аэрофотосъёмки) ---
+    // --- АЛГЕБРА 10: Дрон-картограф ---
     case "alg_drone_flight": {
       const dx = 45 + (x / 4) * 260;
       const dy = 165 - ((y1 / 24) * 120);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <!-- Земля -->
           <line x1="25" y1="168" x2="335" y2="168" stroke="#2b7a1f" stroke-width="3"/>
-          <!-- Параболическая траектория -->
           <path d="M 45,155 Q 175,-45 305,155" fill="none" stroke="#0f6a55" stroke-width="2" stroke-dasharray="5 4"/>
-          <!-- Конус обзора камеры дрона -->
           <polygon points="${dx},${dy} ${dx - 28},168 ${dx + 28},168" fill="rgba(238, 176, 43, 0.28)" stroke="#c78309" stroke-width="1.2" stroke-dasharray="3 2"/>
           <line x1="${dx}" y1="${dy}" x2="${dx}" y2="168" stroke="#c92a2a" stroke-width="2" stroke-dasharray="3 3"/>
-          <!-- Иконка дрона -->
           <g transform="translate(${dx - 16}, ${dy - 8})">
             <rect x="6" y="4" width="20" height="7" rx="3" fill="#083d30"/>
             <line x1="0" y1="2" x2="12" y2="2" stroke="#13231f" stroke-width="2.5"/>
@@ -1187,66 +1048,66 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 1 и 17: Пирамида (S, A, B, C, D, O, h, l, a) ---
+    // --- ГЕОМЕТРИЯ 1 и 17: Пирамида (S, A, B, C, D, O, h, l, a — без пересечения текста и рёбер!) ---
     case "geo_pyramid":
     case "geo_glass_pyramid": {
       const a = 12;
       const h = x;
       const l = Math.sqrt(h * h + 36);
-      const apexY = Math.max(22, 102 - h * 6);
+      const apexY = Math.max(24, 102 - h * 5.8);
       return `
         <svg viewBox="0 0 360 215" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="55,168 220,168 295,126 130,126" fill="rgba(59,130,246,0.16)" stroke="#1852b8" stroke-width="2"/>
-          <line x1="55" y1="168" x2="130" y2="126" stroke="#1852b8" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <line x1="130" y1="126" x2="295" y2="126" stroke="#1852b8" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <line x1="55" y1="168" x2="295" y2="126" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 3"/>
-          <line x1="220" y1="168" x2="130" y2="126" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 3"/>
-          <polygon points="175,${apexY} 55,168 220,168" fill="rgba(36,102,216,0.22)" stroke="#1e3a8a" stroke-width="2.2"/>
-          <polygon points="175,${apexY} 220,168 295,126" fill="rgba(36,102,216,0.32)" stroke="#1e3a8a" stroke-width="2.2"/>
-          <line x1="175" y1="${apexY}" x2="130" y2="126" stroke="#1e3a8a" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="50,168 215,168 285,126 120,126" fill="rgba(59,130,246,0.16)" stroke="#1852b8" stroke-width="2"/>
+          <line x1="50" y1="168" x2="120" y2="126" stroke="#1852b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <line x1="120" y1="126" x2="285" y2="126" stroke="#1852b8" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <line x1="50" y1="168" x2="285" y2="126" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <line x1="215" y1="168" x2="120" y2="126" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 3"/>
+          <polygon points="168,${apexY} 50,168 215,168" fill="rgba(36,102,216,0.22)" stroke="#1e3a8a" stroke-width="2.2"/>
+          <polygon points="168,${apexY} 215,168 285,126" fill="rgba(36,102,216,0.32)" stroke="#1e3a8a" stroke-width="2.2"/>
+          <line x1="168" y1="${apexY}" x2="120" y2="126" stroke="#1e3a8a" stroke-width="1.5" stroke-dasharray="4 3"/>
           <!-- Высота h и апофема l -->
-          <line x1="175" y1="${apexY}" x2="175" y2="147" stroke="#c92a2a" stroke-width="2.6" stroke-dasharray="4 2"/>
-          <line x1="175" y1="147" x2="257" y2="147" stroke="#083d30" stroke-width="2" stroke-dasharray="3 2"/>
-          <line x1="175" y1="${apexY}" x2="257" y2="147" stroke="#2b7a1f" stroke-width="2.8"/>
-          <circle cx="175" cy="147" r="3.5" fill="#13231f"/>
-          <circle cx="175" cy="${apexY}" r="4" fill="#1e3a8a"/>
-          <text x="170" y="${apexY - 7}" font-size="14" font-weight="800" fill="#13231f">S</text>
-          <text x="38" y="175" font-size="13" font-weight="800" fill="#13231f">A</text>
-          <text x="225" y="178" font-size="13" font-weight="800" fill="#13231f">B</text>
-          <text x="302" y="130" font-size="13" font-weight="800" fill="#13231f">C</text>
-          <text x="115" y="122" font-size="13" font-weight="800" fill="#13231f">D</text>
-          <text x="162" y="161" font-size="12.5" font-weight="800" fill="#13231f">O</text>
-          <text x="115" y="190" font-size="13.5" font-weight="800" fill="#13231f">a = ${a} м</text>
-          <text x="122" y="${(apexY + 147) / 2}" font-size="13" font-weight="800" fill="#c92a2a">h = ${fmt(h, 1)} м</text>
-          <text x="235" y="${(apexY + 137) / 2}" font-size="13" font-weight="800" fill="#2b7a1f">l ≈ ${fmt(l, 2)} м</text>
+          <line x1="168" y1="${apexY}" x2="168" y2="147" stroke="#c92a2a" stroke-width="2.6" stroke-dasharray="4 2"/>
+          <line x1="168" y1="147" x2="250" y2="147" stroke="#083d30" stroke-width="2" stroke-dasharray="3 2"/>
+          <line x1="168" y1="${apexY}" x2="250" y2="147" stroke="#2b7a1f" stroke-width="2.8"/>
+          <circle cx="168" cy="147" r="3.5" fill="#13231f"/>
+          <circle cx="168" cy="${apexY}" r="4" fill="#1e3a8a"/>
+          <text x="168" y="${apexY - 8}" text-anchor="middle" font-size="14" font-weight="800" fill="#13231f">S</text>
+          <text x="34" y="175" font-size="13" font-weight="800" fill="#13231f">A</text>
+          <text x="220" y="178" font-size="13" font-weight="800" fill="#13231f">B</text>
+          <text x="293" y="130" font-size="13" font-weight="800" fill="#13231f">C</text>
+          <text x="104" y="122" font-size="13" font-weight="800" fill="#13231f">D</text>
+          <text x="155" y="161" font-size="12.5" font-weight="800" fill="#13231f">O</text>
+          <text x="132" y="190" text-anchor="middle" font-size="13.5" font-weight="800" fill="#13231f">a = ${a} м</text>
+          <text x="162" y="${(apexY + 147) / 2 + 5}" text-anchor="end" font-size="13" font-weight="800" fill="#c92a2a">h = ${fmt(h, 1)} м</text>
+          <text x="242" y="${(apexY + 125) / 2}" text-anchor="start" font-size="13" font-weight="800" fill="#2b7a1f">l ≈ ${fmt(l, 2)} м</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 2: Геодезист (Прямоугольный треугольник ABC) ---
+    // --- ГЕОМЕТРИЯ 2: Геодезист ---
     case "geo_survey": {
       const d = y1;
       const topY = Math.max(24, 168 - Math.min(132, d * 2.3));
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="65,168 265,168 265,${topY}" fill="rgba(59,130,246,0.24)" stroke="#1852b8" stroke-width="2.5"/>
-          <line x1="265" y1="168" x2="265" y2="${topY}" stroke="#c92a2a" stroke-width="3.2"/>
-          <rect x="252" y="155" width="13" height="13" fill="none" stroke="#13231f" stroke-width="1.8"/>
-          <path d="M 110,168 A 45,45 0 0,0 102,${168 - 24}" fill="none" stroke="#13231f" stroke-width="2"/>
-          <circle cx="65" cy="168" r="4" fill="#1852b8"/>
-          <circle cx="265" cy="168" r="4" fill="#1852b8"/>
-          <circle cx="265" cy="${topY}" r="4.5" fill="#c92a2a"/>
-          <text x="48" y="180" font-size="14" font-weight="800" fill="#13231f">A</text>
-          <text x="273" y="180" font-size="14" font-weight="800" fill="#13231f">B</text>
-          <text x="273" y="${topY + 5}" font-size="14" font-weight="800" fill="#13231f">C</text>
-          <text x="116" y="157" font-size="13.5" font-weight="800" fill="#13231f">${fmt(x, 0)}°</text>
-          <text x="150" y="190" font-size="14" font-weight="800" fill="#13231f">40 м</text>
-          <text x="276" y="${(168 + topY) / 2 + 5}" font-size="13.5" font-weight="800" fill="#c92a2a">d ≈ ${fmt(d, 1)} м</text>
+          <polygon points="55,168 250,168 250,${topY}" fill="rgba(59,130,246,0.24)" stroke="#1852b8" stroke-width="2.5"/>
+          <line x1="250" y1="168" x2="250" y2="${topY}" stroke="#c92a2a" stroke-width="3.2"/>
+          <rect x="237" y="155" width="13" height="13" fill="none" stroke="#13231f" stroke-width="1.8"/>
+          <path d="M 100,168 A 45,45 0 0,0 92,${168 - 24}" fill="none" stroke="#13231f" stroke-width="2"/>
+          <circle cx="55" cy="168" r="4" fill="#1852b8"/>
+          <circle cx="250" cy="168" r="4" fill="#1852b8"/>
+          <circle cx="250" cy="${topY}" r="4.5" fill="#c92a2a"/>
+          <text x="38" y="180" font-size="14" font-weight="800" fill="#13231f">A</text>
+          <text x="256" y="182" font-size="14" font-weight="800" fill="#13231f">B</text>
+          <text x="256" y="${topY + 4}" font-size="14" font-weight="800" fill="#13231f">C</text>
+          <text x="106" y="157" font-size="13.5" font-weight="800" fill="#13231f">${fmt(x, 0)}°</text>
+          <text x="152" y="190" text-anchor="middle" font-size="14" font-weight="800" fill="#13231f">40 м</text>
+          <text x="260" y="${(168 + topY) / 2 + 5}" font-size="13.5" font-weight="800" fill="#c92a2a">d ≈ ${fmt(d, 1)} м</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 3 и 15: Конус (S, O, h, r, l) ---
+    // --- ГЕОМЕТРИЯ 3 и 15: Конус ---
     case "geo_cone_roof":
     case "geo_pile": {
       const r = task.id === "geo-03" ? 6 : 3;
@@ -1255,26 +1116,26 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       const apexY = Math.max(24, 122 - h * 6.5);
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <ellipse cx="180" cy="164" rx="96" ry="24" fill="rgba(59,130,246,0.2)" stroke="#1852b8" stroke-width="2" stroke-dasharray="5 3"/>
-          <path d="M 84,164 L 180,${apexY} L 276,164" fill="rgba(59,130,246,0.24)" stroke="#1852b8" stroke-width="2.5"/>
-          <path d="M 84,164 A 96,24 0 0,0 276,164" fill="none" stroke="#1852b8" stroke-width="2.5"/>
-          <line x1="180" y1="${apexY}" x2="180" y2="164" stroke="#c92a2a" stroke-width="2.5" stroke-dasharray="4 3"/>
-          <line x1="180" y1="164" x2="276" y2="164" stroke="#c92a2a" stroke-width="2.5"/>
-          <circle cx="180" cy="164" r="4" fill="#13231f"/>
-          <circle cx="180" cy="${apexY}" r="4" fill="#1852b8"/>
-          <text x="175" y="${apexY - 8}" font-size="14" font-weight="800" fill="#13231f">S</text>
-          <text x="163" y="177" font-size="13.5" font-weight="800" fill="#13231f">O</text>
-          <text x="132" y="${(apexY + 164) / 2}" font-size="13.5" font-weight="800" fill="#c92a2a">h = ${fmt(h, 1)} м</text>
-          <text x="215" y="180" font-size="13.5" font-weight="800" fill="#c92a2a">r = ${r} м</text>
-          <text x="238" y="${(apexY + 150) / 2}" font-size="13.5" font-weight="800" fill="#083d30">l ≈ ${fmt(l, 2)} м</text>
+          <ellipse cx="170" cy="164" rx="92" ry="24" fill="rgba(59,130,246,0.2)" stroke="#1852b8" stroke-width="2" stroke-dasharray="5 3"/>
+          <path d="M 78,164 L 170,${apexY} L 262,164" fill="rgba(59,130,246,0.24)" stroke="#1852b8" stroke-width="2.5"/>
+          <path d="M 78,164 A 92,24 0 0,0 262,164" fill="none" stroke="#1852b8" stroke-width="2.5"/>
+          <line x1="170" y1="${apexY}" x2="170" y2="164" stroke="#c92a2a" stroke-width="2.5" stroke-dasharray="4 3"/>
+          <line x1="170" y1="164" x2="262" y2="164" stroke="#c92a2a" stroke-width="2.5"/>
+          <circle cx="170" cy="164" r="4" fill="#13231f"/>
+          <circle cx="170" cy="${apexY}" r="4" fill="#1852b8"/>
+          <text x="170" y="${apexY - 8}" text-anchor="middle" font-size="14" font-weight="800" fill="#13231f">S</text>
+          <text x="155" y="177" font-size="13.5" font-weight="800" fill="#13231f">O</text>
+          <text x="163" y="${(apexY + 164) / 2}" text-anchor="end" font-size="13.5" font-weight="800" fill="#c92a2a">h = ${fmt(h, 1)} м</text>
+          <text x="216" y="180" text-anchor="middle" font-size="13.5" font-weight="800" fill="#c92a2a">r = ${r} м</text>
+          <text x="235" y="${(apexY + 150) / 2}" text-anchor="start" font-size="13.5" font-weight="800" fill="#083d30">l ≈ ${fmt(l, 2)} м</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 4: Жарты шар (Купол планетария) ---
+    // --- ГЕОМЕТРИЯ 4: Жарты шар ---
     case "geo_dome": {
       const R = x;
-      const rx = Math.min(118, 48 + R * 6);
+      const rx = Math.min(115, 48 + R * 5.8);
       const ry = rx * 0.25;
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
@@ -1285,12 +1146,12 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
           <line x1="180" y1="162" x2="${180 + rx}" y2="162" stroke="#c92a2a" stroke-width="2.8" stroke-dasharray="4 2"/>
           <circle cx="180" cy="162" r="4" fill="#13231f"/>
           <text x="163" y="175" font-size="13.5" font-weight="800" fill="#13231f">O</text>
-          <text x="${180 + rx / 2 - 18}" y="153" font-size="14" font-weight="800" fill="#c92a2a">R = ${fmt(R, 1)} м</text>
+          <text x="${180 + rx / 2}" y="153" text-anchor="middle" font-size="14" font-weight="800" fill="#c92a2a">R = ${fmt(R, 1)} м</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 5 и 12: Тең бүйірлі үшбұрыш ферма (A, B, S, O, a, h, s) ---
+    // --- ГЕОМЕТРИЯ 5 и 12: Тең бүйірлі үшбұрыш ферма ---
     case "geo_bridge_truss":
     case "geo_warehouse_truss": {
       const a = task.id === "geo-05" ? 18 : 16;
@@ -1303,13 +1164,13 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
           <line x1="180" y1="${apexY}" x2="180" y2="164" stroke="#c92a2a" stroke-width="2.5" stroke-dasharray="4 3"/>
           <circle cx="180" cy="${apexY}" r="4" fill="#1852b8"/>
           <circle cx="180" cy="164" r="3.5" fill="#c92a2a"/>
-          <text x="175" y="${apexY - 8}" font-size="14" font-weight="800" fill="#13231f">S</text>
+          <text x="180" y="${apexY - 8}" text-anchor="middle" font-size="14" font-weight="800" fill="#13231f">S</text>
           <text x="38" y="172" font-size="14" font-weight="800" fill="#13231f">A</text>
           <text x="312" y="172" font-size="14" font-weight="800" fill="#13231f">B</text>
           <text x="174" y="180" font-size="13" font-weight="800" fill="#13231f">O</text>
-          <text x="148" y="198" font-size="14" font-weight="800" fill="#13231f">a = ${a} м</text>
+          <text x="180" y="198" text-anchor="middle" font-size="14" font-weight="800" fill="#13231f">a = ${a} м</text>
           <text x="186" y="${(apexY + 164) / 2 + 5}" font-size="13.5" font-weight="800" fill="#c92a2a">h = ${fmt(h, 1)} м</text>
-          <text x="72" y="${(apexY + 150) / 2}" font-size="13.5" font-weight="800" fill="#083d30">s ≈ ${fmt(s, 2)} м</text>
+          <text x="105" y="${(apexY + 150) / 2}" text-anchor="end" font-size="13.5" font-weight="800" fill="#083d30">s ≈ ${fmt(s, 2)} м</text>
         </svg>
       `;
     }
@@ -1321,7 +1182,7 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       const alpha = x;
       const rad = (alpha * Math.PI) / 180;
       const topY = Math.max(32, 166 - Math.sin(rad) * 145);
-      const rightX = Math.min(295, 65 + Math.cos(rad) * 205);
+      const rightX = Math.min(280, 60 + Math.cos(rad) * 195);
       const lText = task.id === "geo-06"
         ? `l ≈ ${fmt(1.2 / Math.sin(rad), 2)} м`
         : task.id === "geo-11" ? "L = 4 м" : "l = 2 м";
@@ -1331,22 +1192,22 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
         : `b ≈ ${fmt((task.id === "geo-11" ? 4 : 2) * Math.cos(rad), 2)} м`;
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="65,166 ${rightX},166 ${rightX},${topY}" fill="rgba(59,130,246,0.22)" stroke="#1852b8" stroke-width="2.5"/>
-          <line x1="65" y1="166" x2="${rightX}" y2="${topY}" stroke="#083d30" stroke-width="3.4"/>
+          <polygon points="60,166 ${rightX},166 ${rightX},${topY}" fill="rgba(59,130,246,0.22)" stroke="#1852b8" stroke-width="2.5"/>
+          <line x1="60" y1="166" x2="${rightX}" y2="${topY}" stroke="#083d30" stroke-width="3.4"/>
           <line x1="${rightX}" y1="166" x2="${rightX}" y2="${topY}" stroke="#c92a2a" stroke-width="2.8"/>
           <rect x="${rightX - 12}" y="154" width="12" height="12" fill="none" stroke="#13231f" stroke-width="1.6"/>
-          <text x="102" y="158" font-size="13.5" font-weight="800" fill="#13231f">${fmt(alpha, 0)}°</text>
-          <text x="${(65 + rightX) / 2 - 25}" y="${(166 + topY) / 2 - 10}" font-size="13.5" font-weight="800" fill="#083d30">${lText}</text>
+          <text x="98" y="158" font-size="13.5" font-weight="800" fill="#13231f">${fmt(alpha, 0)}°</text>
+          <text x="${(60 + rightX) / 2 - 10}" y="${(166 + topY) / 2 - 10}" text-anchor="middle" font-size="13.5" font-weight="800" fill="#083d30">${lText}</text>
           <text x="${rightX + 8}" y="${(166 + topY) / 2 + 4}" font-size="13" font-weight="800" fill="#c92a2a">${hText}</text>
-          <text x="${(65 + rightX) / 2 - 20}" y="188" font-size="13" font-weight="800" fill="#13231f">${xText}</text>
+          <text x="${(60 + rightX) / 2}" y="188" text-anchor="middle" font-size="13" font-weight="800" fill="#13231f">${xText}</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 7: Дұрыс алтыбұрыш (A, B, C, D, E, F, O, a) ---
+    // --- ГЕОМЕТРИЯ 7: Дұрыс алтыбұрыш ---
     case "geo_hexagon": {
-      const r = Math.min(76, 32 + x * 6.8);
-      const cx = 180, cy = 102;
+      const r = Math.min(74, 32 + x * 6.5);
+      const cx = 180, cy = 100;
       const pts = [];
       const labels = ["D", "C", "B", "A", "F", "E"];
       for (let i = 0; i < 6; i++) {
@@ -1365,12 +1226,12 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
           <circle cx="${cx}" cy="${cy}" r="3.5" fill="#c92a2a"/>
           <text x="${cx - 5}" y="${cy + 15}" font-size="13" font-weight="800" fill="#13231f">O</text>
           ${pts.map(p => `<text x="${cx + (p.x - cx) * 1.22 - 5}" y="${cy + (p.y - cy) * 1.22 + 5}" font-size="13" font-weight="800" fill="#13231f">${p.lbl}</text>`).join("")}
-          <text x="${cx}" y="${cy + r + 22}" text-anchor="middle" font-size="13.5" font-weight="800" fill="#c92a2a">a = ${fmt(x, 1)} м</text>
+          <text x="${cx}" y="${cy + r + 24}" text-anchor="middle" font-size="13.5" font-weight="800" fill="#c92a2a">a = ${fmt(x, 1)} м</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 8: Сфера (O, R) ---
+    // --- ГЕОМЕТРИЯ 8: Сфера ---
     case "geo_sphere": {
       const r = Math.min(76, 34 + x * 7.8);
       return `
@@ -1386,7 +1247,7 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 9: Трапеция (A, B, C, D, a=30, b=18, h) ---
+    // --- ГЕОМЕТРИЯ 9: Трапеция ---
     case "geo_trapezoid": {
       const hPx = Math.min(115, 36 + x * 3.4);
       const topY = 166 - hPx;
@@ -1406,7 +1267,7 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 10: Шеңбер (O, R=15 м) ---
+    // --- ГЕОМЕТРИЯ 10: Шеңбер ---
     case "geo_circle": {
       const r = Math.min(76, 30 + x * 1.9);
       return `
@@ -1420,23 +1281,23 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 13: Қорап (Тікбұрышты параллелепипед) ---
+    // --- ГЕОМЕТРИЯ 13: Қорап ---
     case "geo_box": {
       const hPx = Math.min(96, 32 + x * 1.4);
       const topY = 166 - hPx;
       return `
         <svg viewBox="0 0 360 210" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="70,166 220,166 220,${topY} 70,${topY}" fill="rgba(238,176,43,0.25)" stroke="#92400e" stroke-width="2.2"/>
-          <polygon points="220,166 275,136 275,${topY - 30} 220,${topY}" fill="rgba(217,119,6,0.34)" stroke="#92400e" stroke-width="2.2"/>
-          <polygon points="70,${topY} 220,${topY} 275,${topY - 30} 125,${topY - 30}" fill="rgba(251,191,36,0.3)" stroke="#92400e" stroke-width="2.2"/>
-          <text x="145" y="185" text-anchor="middle" font-size="13" font-weight="800" fill="#13231f">a = 40 см</text>
-          <text x="262" y="164" font-size="13" font-weight="800" fill="#13231f">b = 30 см</text>
-          <text x="282" y="${topY + hPx / 2 - 15}" font-size="13" font-weight="800" fill="#c92a2a">h = ${fmt(x, 0)} см</text>
+          <polygon points="65,166 210,166 210,${topY} 65,${topY}" fill="rgba(238,176,43,0.25)" stroke="#92400e" stroke-width="2.2"/>
+          <polygon points="210,166 262,136 262,${topY - 30} 210,${topY}" fill="rgba(217,119,6,0.34)" stroke="#92400e" stroke-width="2.2"/>
+          <polygon points="65,${topY} 210,${topY} 262,${topY - 30} 117,${topY - 30}" fill="rgba(251,191,36,0.3)" stroke="#92400e" stroke-width="2.2"/>
+          <text x="138" y="185" text-anchor="middle" font-size="13" font-weight="800" fill="#13231f">a = 40 см</text>
+          <text x="252" y="164" font-size="13" font-weight="800" fill="#13231f">b = 30 см</text>
+          <text x="270" y="${topY + hPx / 2 - 15}" font-size="13" font-weight="800" fill="#c92a2a">h = ${fmt(x, 0)} см</text>
         </svg>
       `;
     }
 
-    // --- ГЕОМЕТРИЯ 14: Дрон-картограф (Тіктөртбұрыш алқап координаталарымен) ---
+    // --- ГЕОМЕТРИЯ 14: Дрон-картограф ---
     case "geo_drone_rect": {
       const hPx = Math.min(115, 36 + x * 0.8);
       const topY = 166 - hPx;
@@ -1477,13 +1338,13 @@ function buildDynamicSvgDiagram(task, x, y1, y2) {
 }
 
 // ============================================================================
-// ВИЗУАЛЬНАЯ ЗОНА 3: ИНТЕРАКТИВНАЯ ВРАЩАЕМАЯ 3D-МОДЕЛЬ (GEOGEBRA 3D CANVAS)
+// ИНТЕРАКТИВНАЯ ВРАЩАЕМАЯ 3D-МОДЕЛЬ (GEOGEBRA 3D CANVAS)
 // ============================================================================
 
 function drawGeoGebra3D(task, x) {
   const canvas = $("geogebra3dCanvas");
   if (!canvas) return;
-  const w = 168, h = 155;
+  const w = 195, h = 175;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
@@ -1496,36 +1357,34 @@ function drawGeoGebra3D(task, x) {
   const yaw = state.rotYaw;
   const pitch = state.rotPitch;
 
-  // 3D -> 2D изометрическая проекция с вращением
   const project = (px, py, pz) => {
     const x1 = px * Math.cos(yaw) - py * Math.sin(yaw);
     const y1 = px * Math.sin(yaw) + py * Math.cos(yaw);
     const z1 = pz;
     const y2 = y1 * Math.cos(pitch) - z1 * Math.sin(pitch);
-    const scale = 1.05;
+    const scale = 1.12;
     return {
       x: cx + x1 * scale,
-      y: cy + y2 * scale * 0.65 - z1 * Math.cos(pitch) * 0.78
+      y: cy + y2 * scale * 0.65 - z1 * Math.cos(pitch) * 0.8
     };
   };
 
-  // Координатная плоскость GeoGebra (серая сетка в основании)
+  // Координатная плоскость GeoGebra
   ctx.strokeStyle = "rgba(100, 125, 140, 0.28)";
   ctx.lineWidth = 0.8;
-  for (let g = -45; g <= 45; g += 15) {
-    const p1 = project(g, -45, 0), p2 = project(g, 45, 0);
-    const p3 = project(-45, g, 0), p4 = project(45, g, 0);
+  for (let g = -48; g <= 48; g += 16) {
+    const p1 = project(g, -48, 0), p2 = project(g, 48, 0);
+    const p3 = project(-48, g, 0), p4 = project(48, g, 0);
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
     ctx.moveTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y);
     ctx.stroke();
   }
 
-  // Оси X, Y, Z
   const o = project(0, 0, 0);
-  const axZ = project(0, 0, 58);
+  const axZ = project(0, 0, 62);
   ctx.strokeStyle = "#dc2626";
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = 1.3;
   ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(axZ.x, axZ.y); ctx.stroke();
 
   const poly = (pts3d, fill, stroke = "#312e81", lw = 1.6) => {
@@ -1537,10 +1396,9 @@ function drawGeoGebra3D(task, x) {
     if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
   };
 
-  // Выбор 3D фигуры по типу задачи
   if (task.diagram === "geo_pyramid" || task.diagram === "geo_glass_pyramid") {
-    const s = 34;
-    const hz = Math.min(68, 22 + x * 4);
+    const s = 36;
+    const hz = Math.min(72, 24 + x * 4.2);
     const b = [[-s, -s, 0], [s, -s, 0], [s, s, 0], [-s, s, 0]];
     const top = [0, 0, hz];
     poly(b, "rgba(99, 102, 241, 0.2)");
@@ -1548,8 +1406,8 @@ function drawGeoGebra3D(task, x) {
       poly([b[i], b[(i + 1) % 4], top], "rgba(129, 140, 248, 0.34)", "#3730a3", 1.5);
     }
   } else if (task.diagram === "geo_cone_roof" || task.diagram === "geo_pile") {
-    const r = 34;
-    const hz = Math.min(68, 20 + x * 4.2);
+    const r = 36;
+    const hz = Math.min(72, 22 + x * 4.2);
     const top = project(0, 0, hz);
     const basePts = [];
     for (let i = 0; i <= 24; i++) {
@@ -1564,7 +1422,7 @@ function drawGeoGebra3D(task, x) {
     }
   } else if (task.diagram === "geo_dome" || task.diagram === "geo_sphere") {
     const isFull = task.diagram === "geo_sphere";
-    const r = Math.min(44, 20 + x * 2.5);
+    const r = Math.min(46, 22 + x * 2.5);
     const rings = isFull ? [-0.6, -0.3, 0, 0.3, 0.6, 0.85] : [0, 0.3, 0.6, 0.85];
     rings.forEach((zf) => {
       const z = zf * r + (isFull ? r * 0.5 : 0);
@@ -1577,7 +1435,7 @@ function drawGeoGebra3D(task, x) {
       poly(ringPts, "rgba(129, 140, 248, 0.2)", "#3730a3", 1.2);
     });
   } else if (task.diagram === "geo_hexagon") {
-    const r = Math.min(44, 18 + x * 3.5);
+    const r = Math.min(46, 20 + x * 3.5);
     const hex = [];
     for (let i = 0; i < 6; i++) {
       const a = (i * 60 * Math.PI) / 180;
@@ -1585,19 +1443,18 @@ function drawGeoGebra3D(task, x) {
     }
     poly(hex, "rgba(129, 140, 248, 0.38)", "#3730a3", 1.8);
   } else if (task.diagram === "geo_ramp" || task.diagram === "geo_solar" || task.diagram === "geo_survey" || task.diagram === "alg_robot") {
-    const hz = Math.min(54, 15 + Math.sin((x * Math.PI) / 180) * 52);
-    const w3 = 22;
-    const pA1 = [-32, -w3, 0], pB1 = [32, -w3, 0], pC1 = [32, -w3, hz];
-    const pA2 = [-32, w3, 0], pB2 = [32, w3, 0], pC2 = [32, w3, hz];
+    const hz = Math.min(56, 15 + Math.sin((x * Math.PI) / 180) * 52);
+    const w3 = 24;
+    const pA1 = [-34, -w3, 0], pB1 = [34, -w3, 0], pC1 = [34, -w3, hz];
+    const pA2 = [-34, w3, 0], pB2 = [34, w3, 0], pC2 = [34, w3, hz];
     poly([pA1, pB1, pB2, pA2], "rgba(129, 140, 248, 0.2)");
     poly([pA1, pB1, pC1], "rgba(129, 140, 248, 0.35)");
     poly([pA2, pB2, pC2], "rgba(129, 140, 248, 0.35)");
     poly([pA1, pC1, pC2, pA2], "rgba(99, 102, 241, 0.42)", "#3730a3", 1.6);
   } else {
-    // 3D параллелепипед / призма для остальных задач
-    const sx = 30, sy = 24;
+    const sx = 32, sy = 26;
     const rangeSpan = Math.max(1, task.research.max - task.research.min);
-    const hz = 16 + ((x - task.research.min) / rangeSpan) * 46;
+    const hz = 16 + ((x - task.research.min) / rangeSpan) * 48;
     const b = [[-sx, -sy, 0], [sx, -sy, 0], [sx, sy, 0], [-sx, sy, 0]];
     const t = [[-sx, -sy, hz], [sx, -sy, hz], [sx, sy, hz], [-sx, sy, hz]];
     for (let i = 0; i < 4; i++) {
@@ -1608,15 +1465,15 @@ function drawGeoGebra3D(task, x) {
 }
 
 // ============================================================================
-// ВИЗУАЛЬНАЯ ЗОНА 4: ГРАФИК ЗАВИСИМОСТИ С ВЫНОСКОЙ (В СТИЛЕ ПРЕЗЕНТАЦИИ)
+// ГРАФИК ЗАВИСИМОСТИ С ВЫНОСКОЙ (БЕЗ НАЛОЖЕНИЯ НА ПОДПИСИ ОСИ Y)
 // ============================================================================
 
 function drawDependencyChart(task, x, y1, y2) {
   const canvas = $("dependencyChartCanvas");
   if (!canvas) return;
   const loc = task[state.lang];
-  const w = Math.max(260, canvas.clientWidth || 380);
-  const h = 185;
+  const w = Math.max(240, canvas.clientWidth || 420);
+  const h = 210;
   const dpr = window.devicePixelRatio || 1;
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
@@ -1625,7 +1482,7 @@ function drawDependencyChart(task, x, y1, y2) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
-  const padL = 62, padR = 18, padT = 22, padB = 30;
+  const padL = 72, padR = 20, padT = 24, padB = 32;
   const plotW = w - padL - padR;
   const plotH = h - padT - padB;
 
@@ -1648,17 +1505,17 @@ function drawDependencyChart(task, x, y1, y2) {
 
   let minY = Math.min(...ys);
   let maxY = Math.max(...ys);
-  const margin = Math.max((maxY - minY) * 0.14, 1);
+  const margin = Math.max((maxY - minY) * 0.16, 1);
   minY -= margin;
   maxY += margin;
 
   const toX = (v) => padL + ((v - minX) / (maxX - minX)) * plotW;
   const toY = (v) => padT + ((maxY - v) / (maxY - minY)) * plotH;
 
-  // Сетка
+  // Координатная сетка
   ctx.strokeStyle = "#e3ece8";
   ctx.lineWidth = 1;
-  ctx.font = "600 10.5px 'Golos Text', sans-serif";
+  ctx.font = "600 11px 'Golos Text', sans-serif";
   ctx.fillStyle = "#556b65";
 
   for (let i = 0; i <= 4; i++) {
@@ -1674,7 +1531,7 @@ function drawDependencyChart(task, x, y1, y2) {
     ctx.textAlign = "center";
     ctx.fillText(fmt(xv, 1), gx, h - 10);
     ctx.textAlign = "right";
-    ctx.fillText(yv >= 100000 ? `${fmt(yv / 1000, 0)}k` : fmt(yv, 1), padL - 6, gy + 3);
+    ctx.fillText(fmtCompact(yv), padL - 8, gy + 3.5);
   }
 
   // Закрашенная площадь интеграла (ALG-09)
@@ -1702,11 +1559,11 @@ function drawDependencyChart(task, x, y1, y2) {
       else ctx.lineTo(toX(xi), toY(yi));
     }
     ctx.strokeStyle = "#d99316";
-    ctx.lineWidth = 2.4;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
   }
 
-  // Основная зелёная кривая (как в презентации)
+  // Основная зелёная кривая
   ctx.beginPath();
   for (let i = 0; i <= N; i++) {
     const xi = minX + ((maxX - minX) * i) / N;
@@ -1715,15 +1572,15 @@ function drawDependencyChart(task, x, y1, y2) {
     else ctx.lineTo(toX(xi), toY(yi));
   }
   ctx.strokeStyle = "#2b7a1f";
-  ctx.lineWidth = 2.8;
+  ctx.lineWidth = 3;
   ctx.stroke();
 
   // Пунктирные проекции текущей точки
   const px = toX(x);
   const py = toY(y1);
   ctx.strokeStyle = "#2b7a1f";
-  ctx.lineWidth = 1.3;
-  ctx.setLineDash([3, 3]);
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([4, 3]);
   ctx.beginPath();
   ctx.moveTo(px, padT + plotH);
   ctx.lineTo(px, py);
@@ -1733,35 +1590,35 @@ function drawDependencyChart(task, x, y1, y2) {
 
   // Активная точка
   ctx.beginPath();
-  ctx.arc(px, py, 5.5, 0, Math.PI * 2);
+  ctx.arc(px, py, 6, 0, Math.PI * 2);
   ctx.fillStyle = "#eeb02b";
   ctx.fill();
   ctx.strokeStyle = "#083d30";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Жёлтая плашка-выноска на графике (как в презентации: "h = 6 м | C ≈ 1,32 млн ₸")
+  // Жёлтая плашка-выноска на графике (строго внутри поля графика padL+6 .. padL+plotW-6)
   const calloutText = `${fmt(x, 1)} ${loc.unit} → ${fmt(y1, 1)} ${loc.yUnit}`;
-  ctx.font = "700 11px 'Golos Text', sans-serif";
-  const bw = ctx.measureText(calloutText).width + 14;
-  const bx = Math.min(Math.max(px - bw / 2, padL + 4), padL + plotW - bw - 4);
-  const by = py - 27 < padT ? py + 9 : py - 27;
+  ctx.font = "700 11.5px 'Golos Text', sans-serif";
+  const bw = Math.min(plotW - 12, ctx.measureText(calloutText).width + 16);
+  const bx = Math.min(Math.max(px - bw / 2, padL + 6), padL + plotW - bw - 6);
+  const by = py - 29 < padT + 2 ? py + 11 : py - 29;
 
   ctx.fillStyle = "#fdf1cf";
   ctx.strokeStyle = "#c78309";
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.roundRect(bx, by, bw, 20, 4);
+  ctx.roundRect(bx, by, bw, 22, 4);
   ctx.fill();
   ctx.stroke();
 
   ctx.fillStyle = "#13231f";
   ctx.textAlign = "center";
-  ctx.fillText(calloutText, bx + bw / 2, by + 13.5);
+  ctx.fillText(calloutText, bx + bw / 2, by + 15);
 }
 
 // ============================================================================
-// ВИЗУАЛЬНАЯ ЗОНА 5: ДИНАМИЧЕСКАЯ РАСЧЁТНАЯ ТАБЛИЦА ЗНАЧЕНИЙ (X -> Y)
+// ДИНАМИЧЕСКАЯ РАСЧЁТНАЯ ТАБЛИЦА ЗНАЧЕНИЙ (X -> Y)
 // ============================================================================
 
 function renderParameterTable(task, currentX) {
@@ -1770,13 +1627,12 @@ function renderParameterTable(task, currentX) {
   const maxX = Number(task.research.max);
   const targetX = Number(task.research.targetValue);
 
-  // Формируем 7 опорных значений включая targetX и currentX
   const set = new Set([minX, targetX, currentX, maxX]);
-  for (let i = 1; i <= 5; i++) {
-    const v = Number((minX + ((maxX - minX) * i) / 6).toFixed(1));
+  for (let i = 1; i <= 4; i++) {
+    const v = Number((minX + ((maxX - minX) * i) / 5).toFixed(1));
     set.add(v);
   }
-  const points = Array.from(set).sort((a, b) => a - b).slice(0, 8);
+  const points = Array.from(set).sort((a, b) => a - b).slice(0, 7);
 
   const thCells = points.map((v) => {
     const isCur = Math.abs(v - currentX) < 0.01;
@@ -1786,16 +1642,16 @@ function renderParameterTable(task, currentX) {
   const tdCells = points.map((v) => {
     const isCur = Math.abs(v - currentX) < 0.01;
     const yv = window.evaluateTaskModel(task, v, false);
-    return `<td class="${isCur ? 'active-col' : ''}" style="cursor:pointer;" onclick="setParamPreset(${v})">${fmt(yv, 1)}</td>`;
+    return `<td class="${isCur ? 'active-col' : ''}" style="cursor:pointer;" onclick="setParamPreset(${v})">${fmtCompact(yv)}</td>`;
   }).join("");
 
   $("paramValueTable").innerHTML = `
     <tr>
-      <th>${loc.paramLabel} (${loc.unit})</th>
+      <th>${loc.unit}</th>
       ${thCells}
     </tr>
     <tr>
-      <th>${loc.yLabel} (${loc.yUnit})</th>
+      <th>${loc.yUnit}</th>
       ${tdCells}
     </tr>
   `;

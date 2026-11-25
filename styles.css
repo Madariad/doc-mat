@@ -1,7 +1,7 @@
 /* ==========================================================================
    МАТЕМАТИКА ЖӘНЕ МАМАНДЫҚ ӘЛЕМІ / МАТЕМАТИКА И МИР ПРОФЕССИЙ
    Оригинальная дизайн-система: Инженерный атлас и интерактивный плакат
-   (по мотивам учебных презентаций 10–11 классов, без шаблонных ИИ-клише)
+   Полная адаптивность без горизонтального переполнения (320px — 1920px+)
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
@@ -24,7 +24,6 @@
   --amber-500: #eeb02b;
   --amber-400: #f6c44e;
   --amber-100: #fdf1cf;
-  --amber-50: #CTfcf2;
 
   --crimson-600: #c92a2a;
   --crimson-100: #ffe3e3;
@@ -50,23 +49,25 @@
   --font-math: 'PT Serif', 'Cambria Math', 'Times New Roman', serif;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background-color: var(--paper-bg);
   background-image:
     linear-gradient(to right, rgba(11, 83, 66, 0.055) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(11, 83, 66, 0.055) 1px, transparent 1px);
   background-size: 24px 24px;
   color: var(--ink-900);
-  font: 15.5px/1.55 var(--font-sans);
+  font: 15px/1.55 var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -79,9 +80,20 @@ button {
 }
 
 .container {
-  max-width: 1340px;
+  width: 100%;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 18px;
+}
+
+/* Гало-обводка для всех подписей на SVG-чертежах, чтобы линии не перекрывали текст */
+.blueprint-stage svg text,
+.wb-schematic-preview svg text {
+  paint-order: stroke fill;
+  stroke: #f8fbf9;
+  stroke-width: 4.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ==========================================================================
@@ -92,37 +104,29 @@ button {
   background: var(--forest-900);
   color: #ffffff;
   border-bottom: 4px solid var(--amber-500);
-  position: relative;
 }
 
 .atlas-topbar {
   background: var(--forest-950);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding: 8px 0;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .atlas-topbar-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .atlas-code-strip {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   font-family: var(--font-mono);
   color: #a9cfc3;
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.code-divider {
-  opacity: 0.35;
 }
 
 .lang-toggle {
@@ -138,7 +142,7 @@ button {
   background: transparent;
   color: #cfe5de;
   padding: 5px 14px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
   transition: background 0.15s, color 0.15s;
@@ -150,25 +154,26 @@ button {
 }
 
 .atlas-hero {
-  padding: 22px 0 24px;
+  padding: 20px 0 22px;
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
   align-items: center;
 }
 
 .atlas-title-group {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .compass-emblem {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border: 2px solid var(--amber-500);
   background: var(--forest-800);
-  border-radius: 10px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,8 +182,8 @@ button {
 }
 
 .atlas-title {
-  margin: 0 0 6px;
-  font-size: clamp(23px, 3.2vw, 36px);
+  margin: 0 0 5px;
+  font-size: clamp(21px, 3vw, 34px);
   font-weight: 800;
   letter-spacing: -0.01em;
   line-height: 1.15;
@@ -187,11 +192,10 @@ button {
 .atlas-subtitle {
   margin: 0;
   color: #c7e3d9;
-  font-size: 14.5px;
+  font-size: 14px;
   max-width: 720px;
 }
 
-/* Правая плашка спецификации в шапке */
 .atlas-spec-box {
   display: grid;
   grid-template-columns: repeat(2, auto);
@@ -200,10 +204,11 @@ button {
   border-radius: 6px;
   overflow: hidden;
   font-family: var(--font-mono);
+  flex-shrink: 0;
 }
 
 .spec-cell {
-  padding: 8px 14px;
+  padding: 7px 13px;
   border-right: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -224,25 +229,25 @@ button {
 }
 
 .spec-val {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--amber-400);
 }
 
 /* ==========================================================================
-   ПАНЕЛЬ УПРАВЛЕНИЯ КАТАЛОГОМ (КОМПАКТНАЯ ИНЖЕНЕРНАЯ ШКАЛА)
+   ПАНЕЛЬ УПРАВЛЕНИЯ КАТАЛОГОМ
    ========================================================================== */
 
 .main-workspace {
-  padding: 24px 0 64px;
+  padding: 22px 0 60px;
 }
 
 .control-dock {
   background: var(--paper-card);
   border: 1.5px solid var(--border-strong);
   border-radius: 8px;
-  box-shadow: 4px 4px 0 rgba(11, 83, 66, 0.14);
-  margin-bottom: 22px;
+  box-shadow: 4px 4px 0 rgba(11, 83, 66, 0.13);
+  margin-bottom: 20px;
   overflow: hidden;
 }
 
@@ -258,12 +263,12 @@ button {
   border-right: 1px solid var(--border-line);
   background: transparent;
   color: var(--ink-700);
-  padding: 13px 22px;
-  font-size: 14.5px;
+  padding: 12px 20px;
+  font-size: 14px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   transition: background 0.15s, color 0.15s;
 }
 
@@ -279,7 +284,7 @@ button {
 
 .dock-count {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(0, 0, 0, 0.08);
@@ -292,11 +297,12 @@ button {
 }
 
 .dock-filters-bar {
-  padding: 14px 18px;
-  display: grid;
-  grid-template-columns: auto auto 1fr auto;
-  gap: 18px;
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
   align-items: center;
+  justify-content: space-between;
 }
 
 .filter-cluster {
@@ -308,15 +314,15 @@ button {
 
 .cluster-title {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--ink-500);
-  margin-right: 2px;
 }
 
 .btn-group {
   display: inline-flex;
+  flex-wrap: wrap;
   border: 1px solid var(--border-line);
   border-radius: 5px;
   overflow: hidden;
@@ -328,12 +334,12 @@ button {
   border-right: 1px solid var(--border-line);
   background: transparent;
   color: var(--ink-700);
-  padding: 6px 12px;
-  font-size: 13px;
+  padding: 6px 11px;
+  font-size: 12.5px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .filter-chip:last-child {
@@ -354,6 +360,7 @@ button {
   height: 8px;
   border-radius: 2px;
   display: inline-block;
+  flex-shrink: 0;
 }
 .lvl-indicator.lvl-A { background: var(--lime-600); }
 .lvl-indicator.lvl-B { background: var(--cobalt-600); }
@@ -363,6 +370,8 @@ button {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 220px;
 }
 
 .search-svg {
@@ -374,12 +383,12 @@ button {
 
 .search-field {
   width: 100%;
-  padding: 7px 32px 7px 34px;
+  padding: 7px 30px 7px 32px;
   border: 1px solid var(--border-line);
   border-radius: 5px;
   background: var(--paper-bg);
   color: var(--ink-900);
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 .search-field:focus {
@@ -394,8 +403,8 @@ button {
   border: 0;
   background: var(--border-line);
   color: var(--ink-700);
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   border-radius: 3px;
   font-size: 11px;
   display: flex;
@@ -403,23 +412,17 @@ button {
   justify-content: center;
 }
 
-/* Пояснительная полоса уровней A/B/C */
 .level-strip {
   background: #f8faf9;
   border-top: 1px solid var(--border-soft);
-  padding: 9px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 12.5px;
+  padding: 8px 16px;
+  font-size: 12px;
   color: var(--ink-700);
 }
 
 .level-strip-items {
   display: flex;
-  gap: 18px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -438,7 +441,7 @@ button {
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 3px;
@@ -491,8 +494,8 @@ button {
 
 .catalog-Grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 16px;
 }
 
 .workbook-card {
@@ -503,27 +506,27 @@ button {
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  min-width: 0;
   transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .workbook-card:hover {
   transform: translate(-2px, -2px);
   border-color: var(--forest-800);
-  box-shadow: 5px 5px 0 rgba(8, 61, 48, 0.18);
+  box-shadow: 5px 5px 0 rgba(8, 61, 48, 0.16);
 }
 
 .workbook-card:focus-visible {
   outline: 2px solid var(--amber-500);
 }
 
-/* Верхняя полоса карточки как на слайде презентации */
 .wb-card-topbar {
   background: var(--forest-900);
   color: #ffffff;
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
 }
 
@@ -531,9 +534,12 @@ button {
   padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-family: var(--font-mono);
-  letter-spacing: 0.03em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wb-card-grade {
@@ -542,13 +548,13 @@ button {
   padding: 6px 14px;
   font-weight: 800;
   clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%);
+  flex-shrink: 0;
 }
 
-/* Двойное визуальное превью карточки: фото + мини-чертёж модели */
 .wb-card-visuals {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  height: 156px;
+  grid-template-columns: 1.1fr 0.9fr;
+  height: 152px;
   border-bottom: 1px solid var(--border-soft);
   background: #f8fbf9;
 }
@@ -557,6 +563,7 @@ button {
   position: relative;
   overflow: hidden;
   border-right: 1px solid var(--border-soft);
+  min-width: 0;
 }
 
 .wb-photo {
@@ -573,19 +580,22 @@ button {
 
 .wb-job-ribbon {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
-  background: rgba(5, 40, 32, 0.9);
+  bottom: 7px;
+  left: 7px;
+  right: 7px;
+  background: rgba(5, 40, 32, 0.92);
   color: #ffffff;
   border-left: 3px solid var(--amber-500);
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 3px 8px;
+  font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wb-schematic-preview {
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -595,19 +605,21 @@ button {
     linear-gradient(to bottom, rgba(11, 83, 66, 0.06) 1px, transparent 1px);
   background-size: 12px 12px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .wb-schematic-preview svg {
   width: 100%;
-  max-height: 132px;
+  max-height: 136px;
   display: block;
 }
 
 .wb-card-body {
-  padding: 14px 16px 16px;
+  padding: 13px 15px 15px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .wb-card-meta {
@@ -616,17 +628,18 @@ button {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .wb-topic-text {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--forest-700);
 }
 
 .wb-card-title {
-  margin: 0 0 8px;
-  font-size: 17.5px;
+  margin: 0 0 7px;
+  font-size: 17px;
   font-weight: 800;
   line-height: 1.28;
   color: var(--ink-900);
@@ -634,7 +647,7 @@ button {
 
 .wb-card-desc {
   margin: 0 0 12px;
-  font-size: 13.5px;
+  font-size: 13.2px;
   color: var(--ink-700);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -650,35 +663,38 @@ button {
   gap: 10px;
   padding-top: 10px;
   border-top: 1px dashed var(--border-line);
+  flex-wrap: wrap;
 }
 
 .wb-formula-pill {
   font-family: var(--font-math);
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--forest-900);
   background: var(--forest-50);
-  padding: 3px 10px;
+  padding: 3px 9px;
   border-radius: 4px;
   border: 1px solid var(--forest-100);
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .wb-open-link {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--forest-800);
   white-space: nowrap;
 }
 
 /* ==========================================================================
-   СТРАНИЦА ЗАДАЧИ: ПЛАКАТНЫЙ СТИЛЬ ПРЕЗЕНТАЦИИ С 5 ВИЗУАЛЬНЫМИ ЗОНАМИ
+   СТРАНИЦА ЗАДАЧИ: АДАПТИВНЫЙ ПЛАКАТ БЕЗ ПЕРЕПОЛНЕНИЯ
    ========================================================================== */
 
 .poster-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
@@ -690,9 +706,9 @@ button {
   border: 1.5px solid var(--border-strong);
   background: var(--paper-card);
   color: var(--ink-900);
-  padding: 8px 16px;
+  padding: 8px 15px;
   border-radius: 5px;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   transition: background 0.15s;
 }
@@ -701,16 +717,17 @@ button {
   background: var(--forest-100);
 }
 
-/* Главный лист-плакат задачи (оформлен точно в духе презентации!) */
 .poster-sheet {
+  width: 100%;
+  max-width: 100%;
   background: var(--paper-card);
   border: 2px solid var(--border-strong);
   border-radius: 10px;
-  box-shadow: 6px 6px 0 rgba(8, 61, 48, 0.16);
+  box-shadow: 5px 5px 0 rgba(8, 61, 48, 0.15);
   overflow: hidden;
 }
 
-/* 1. Шапка плаката: Изумрудная полоса предмета + скошенная жёлтая лента класса */
+/* 1. Шапка плаката */
 .poster-banner {
   background: linear-gradient(90deg, #064436 0%, #0d6953 100%);
   color: #ffffff;
@@ -721,15 +738,15 @@ button {
 }
 
 .poster-banner-left {
-  padding: 12px 22px;
+  padding: 11px 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
 }
 
 .poster-subject-title {
-  font-size: clamp(16px, 2.2vw, 22px);
+  font-size: clamp(14px, 1.8vw, 20px);
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -738,75 +755,88 @@ button {
 .poster-grade-flag {
   background: linear-gradient(135deg, #f6c44e 0%, #e59f1a 100%);
   color: var(--forest-950);
-  padding: 12px 34px 12px 42px;
-  font-size: clamp(16px, 2vw, 21px);
+  padding: 11px 28px 11px 36px;
+  font-size: clamp(15px, 1.8vw, 20px);
   font-weight: 800;
   display: flex;
   align-items: center;
-  clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* 2. Подшапка с плашкой профессии (зелёный ярлык с иконкой как на слайде) */
+/* 2. Подшапка с профессией */
 .poster-subbanner {
-  padding: 14px 22px;
+  padding: 12px 20px;
   background: #f5f9f7;
   border-bottom: 1.5px solid var(--border-line);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .job-tab-group {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .job-green-badge {
   background: linear-gradient(135deg, var(--lime-600), var(--forest-700));
   color: #ffffff;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 2px 6px rgba(43, 122, 31, 0.25);
+  box-shadow: 0 2px 6px rgba(43, 122, 31, 0.22);
 }
 
 .poster-task-heading {
   margin: 0;
-  font-size: clamp(19px, 2.4vw, 26px);
+  font-size: clamp(18px, 2.2vw, 24px);
   font-weight: 800;
   color: var(--ink-900);
 }
 
-/* 3. Основная 3-колоночная плакатная сетка (в точности по композиции презентации) */
+/* 3. Сбалансированная сетка плаката:
+      Ряд 1: 3 пропорциональные колонки с minmax(0, 1fr), которые никогда не вылезают за край
+      Ряд 2: Интерактивная цифровая лаборатория (3D GeoGebra + График + Ползунок + Таблица) на всю ширину! */
 .poster-body {
-  padding: 20px;
+  padding: 18px;
   display: grid;
-  grid-template-columns: 370px 1fr 360px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr) minmax(0, 0.95fr);
+  gap: 16px;
   align-items: start;
 }
 
 .poster-col {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
-/* Универсальный блок на плакате */
+.poster-row-full {
+  grid-column: 1 / -1;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .p-box {
   border: 1.5px solid var(--border-line);
   border-radius: 8px;
   background: #ffffff;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .p-box-hdr {
@@ -817,23 +847,26 @@ button {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .p-box-hdr h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 800;
   color: var(--forest-950);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  min-width: 0;
 }
 
 .p-box-content {
-  padding: 14px 16px;
+  padding: 14px;
+  min-width: 0;
 }
 
-/* ВИЗУАЛЬНАЯ ЗОНА 1: Аннотированная фотография с размерными стрелками поверх фото */
+/* Иллюстрация объекта (чистая, без дублирующих рамок поверх текста на картинке) */
 .annotated-photo-box {
   position: relative;
   border: 1.5px solid var(--border-strong);
@@ -844,70 +877,55 @@ button {
 
 .annotated-photo-img {
   width: 100%;
-  height: 255px;
+  height: 235px;
   object-fit: cover;
   display: block;
-}
-
-.photo-svg-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 255px;
-  pointer-events: none;
 }
 
 .photo-overlay-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 7px 12px;
   background: var(--forest-900);
   color: #d7ece4;
   font-size: 12px;
 }
 
-.btn-tiny-toggle {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
-  padding: 3px 9px;
-  border-radius: 4px;
+.photo-live-badge {
+  font-family: var(--font-mono);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--amber-400);
 }
 
-.btn-tiny-toggle:hover {
-  background: var(--amber-500);
-  color: var(--forest-950);
-  border-color: var(--amber-500);
-}
-
-/* ВИЗУАЛЬНАЯ ЗОНА 2: 2D Инженерный чертёж на миллиметровке */
+/* 2D Инженерный чертёж на миллиметровке */
 .blueprint-stage {
   background-color: #f8fbf9;
   background-image:
-    linear-gradient(to right, rgba(11, 83, 66, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(11, 83, 66, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgba(11, 83, 66, 0.065) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(11, 83, 66, 0.065) 1px, transparent 1px);
   background-size: 16px 16px;
   border: 1px solid #c6dcd2;
   border-radius: 6px;
   padding: 10px;
-  position: relative;
 }
 
 .blueprint-stage svg {
   width: 100%;
+  height: auto;
   max-height: 235px;
   display: block;
   margin: 0 auto;
 }
 
-/* ВИЗУАЛЬНАЯ ЗОНА 3: Интерактивная 3D модель (GeoGebra) + График зависимости */
-.geogebra-split {
+/* Блок интерактивной лаборатории на всю ширину: 3D модель + График + Ползунок и таблица */
+.interactive-lab-grid {
   display: grid;
-  grid-template-columns: 185px 1fr;
-  gap: 12px;
+  grid-template-columns: 220px minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -915,17 +933,18 @@ button {
   border: 1px solid #c5d9d0;
   border-radius: 6px;
   background: linear-gradient(180deg, #f3f8fb 0%, #e9f2f7 100%);
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  position: relative;
+  min-width: 0;
 }
 
 .geogebra-3d-canvas {
-  width: 168px;
-  height: 155px;
+  width: 195px;
+  height: 175px;
+  max-width: 100%;
   cursor: grab;
   display: block;
 }
@@ -935,11 +954,12 @@ button {
 }
 
 .geogebra-badge {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--ink-700);
   text-align: center;
-  line-height: 1.25;
+  line-height: 1.3;
+  margin-top: 6px;
 }
 
 .chart-card {
@@ -949,17 +969,25 @@ button {
   padding: 10px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  min-width: 0;
 }
 
 .chart-card canvas {
   width: 100%;
-  height: 185px;
+  height: 210px;
   display: block;
 }
 
-/* Ползунок параметра и быстрые пресеты */
+.lab-controls-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
 .lab-control-strip {
-  margin-top: 12px;
   background: #f2f8f5;
   border: 1px solid #bfd8cd;
   border-radius: 6px;
@@ -970,7 +998,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
@@ -983,12 +1011,14 @@ button {
 
 .param-live-readout {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   background: var(--forest-900);
   color: var(--amber-400);
   padding: 4px 10px;
   border-radius: 4px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .custom-range {
@@ -1009,9 +1039,9 @@ button {
   border: 1px solid var(--border-line);
   background: #ffffff;
   color: var(--ink-700);
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 
@@ -1022,17 +1052,21 @@ button {
   border-color: var(--forest-800);
 }
 
-/* ВИЗУАЛЬНАЯ ЗОНА 5: Динамическая таблица значений (как требуют задания GeoGebra/Excel) */
+/* Динамическая таблица значений */
 .data-table-wrap {
-  margin-top: 12px;
+  background: #ffffff;
+  border: 1px solid #c9dcd3;
+  border-radius: 6px;
+  padding: 10px 12px;
   overflow-x: auto;
+  min-width: 0;
 }
 
 .val-table {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   text-align: center;
 }
 
@@ -1040,12 +1074,14 @@ button {
 .val-table td {
   border: 1px solid #c9dcd3;
   padding: 5px 6px;
+  white-space: nowrap;
 }
 
 .val-table th {
   background: #e3f0ea;
   color: var(--forest-950);
   font-weight: 700;
+  text-align: left;
 }
 
 .val-table td.active-col {
@@ -1056,13 +1092,13 @@ button {
 }
 
 /* ==========================================================================
-   НАСТОЯЩАЯ МАТЕМАТИЧЕСКАЯ ВЁРСТКА ФОРМУЛ (ДРОБИ, КОРНИ, ИНДЕКСЫ)
+   МАТЕМАТИЧЕСКАЯ ВЁРСТКА ФОРМУЛ (БЕЗ ВЫЛЕЗАНИЯ ЗА КРАЯ)
    ========================================================================== */
 
 .math-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 .math-item {
@@ -1070,11 +1106,12 @@ button {
   border: 1px solid #cde0d7;
   border-left: 4px solid var(--lime-600);
   border-radius: 5px;
-  padding: 9px 12px;
+  padding: 8px 12px;
+  overflow-x: auto;
 }
 
 .math-item-label {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--ink-500);
   margin-bottom: 3px;
@@ -1082,14 +1119,14 @@ button {
 
 .math-expr {
   font-family: var(--font-math);
-  font-size: 18px;
+  font-size: 16.5px;
   font-weight: 700;
   color: var(--ink-900);
   line-height: 1.4;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
 }
 
 .math-expr i {
@@ -1133,28 +1170,28 @@ button {
   padding: 1px 4px 0 2px;
 }
 
-/* Чеклист цифрового задания (зелёные галочки как в презентации) */
+/* Чеклист цифрового задания */
 .digital-checklist {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .digital-checklist li {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  font-size: 13.8px;
+  gap: 8px;
+  font-size: 13.5px;
   line-height: 1.45;
   color: var(--ink-900);
 }
 
 .check-circle {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--lime-600);
   color: #ffffff;
@@ -1162,18 +1199,18 @@ button {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
-/* Блок пошагового решения (Зелёные кружки 1, 2, 3, 4 как на слайде) */
+/* Блок пошагового решения */
 .btn-reveal-solution {
   width: 100%;
   border: 1.5px solid var(--forest-800);
   background: var(--forest-800);
   color: #ffffff;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -1203,23 +1240,24 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 .sol-step {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 14.5px;
+  gap: 9px;
+  font-size: 13.8px;
+  word-break: break-word;
 }
 
 .sol-step-num {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--lime-600);
   color: #ffffff;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -1232,33 +1270,34 @@ button {
   background: var(--amber-100);
   border: 1.5px solid var(--amber-500);
   border-radius: 6px;
-  padding: 10px 13px;
-  font-size: 15px;
+  padding: 9px 12px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--forest-950);
 }
 
-/* 4. Нижние два блока плаката: «Кәсіби бағдар» (тёмно-зелёный с мишенью) и «Ойлан!» (кремовый с лампочкой) */
+/* 4. Нижние два блока плаката */
 .poster-footer-grid {
-  padding: 0 20px 20px;
+  padding: 0 18px 18px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
 }
 
 .poster-career-card {
   background: var(--forest-900);
   color: #ffffff;
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 10px;
+  padding: 16px 18px;
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .career-icon-circle {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(238, 176, 43, 0.16);
   border: 1.5px solid var(--amber-500);
@@ -1270,15 +1309,15 @@ button {
 }
 
 .poster-career-card h4 {
-  margin: 0 0 6px;
-  font-size: 16.5px;
+  margin: 0 0 5px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--amber-400);
 }
 
 .poster-career-card p {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.55;
   color: #e4f5ee;
 }
@@ -1286,16 +1325,17 @@ button {
 .poster-think-card {
   background: var(--paper-warm);
   border: 2px solid var(--amber-500);
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 10px;
+  padding: 16px 18px;
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .think-icon-circle {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: var(--amber-100);
   border: 1.5px solid var(--amber-600);
@@ -1307,8 +1347,8 @@ button {
 }
 
 .poster-think-card h4 {
-  margin: 0 0 8px;
-  font-size: 16.5px;
+  margin: 0 0 7px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--ink-900);
 }
@@ -1319,14 +1359,14 @@ button {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .think-numbered-list li {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13.8px;
   color: var(--ink-900);
 }
 
@@ -1336,7 +1376,7 @@ button {
   border-radius: 50%;
   background: var(--amber-500);
   color: var(--forest-950);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
@@ -1350,11 +1390,11 @@ button {
    ========================================================================== */
 
 .matrix-drawer {
-  margin-top: 32px;
+  margin-top: 28px;
   background: var(--paper-card);
   border: 1.5px solid var(--border-line);
   border-radius: 8px;
-  padding: 18px 20px;
+  padding: 16px 18px;
 }
 
 .matrix-drawer-hdr {
@@ -1373,12 +1413,12 @@ button {
 .atlas-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 13px;
 }
 
 .atlas-table th,
 .atlas-table td {
-  padding: 9px 11px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--border-soft);
   text-align: left;
 }
@@ -1396,8 +1436,8 @@ button {
 .atlas-footer {
   background: var(--forest-950);
   color: #9ec2b5;
-  padding: 22px 0;
-  font-size: 13px;
+  padding: 20px 0;
+  font-size: 12.5px;
   border-top: 3px solid var(--forest-700);
   text-align: center;
 }
@@ -1407,28 +1447,37 @@ button {
 }
 
 /* ==========================================================================
-   АДАПТИВНОСТЬ (ПЛАНШЕТЫ И СМАРТФОНЫ)
+   АДАПТИВНЫЕ БРЕЙКПОИНТЫ (1150px, 920px, 600px)
    ========================================================================== */
 
-@media (max-width: 1180px) {
+@media (max-width: 1150px) {
   .poster-body {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-  .poster-col:last-child {
+  .poster-col:nth-child(3) {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+  .interactive-lab-grid {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .lab-controls-col {
     grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 860px) {
   .atlas-hero,
-  .dock-filters-bar,
   .poster-body,
-  .poster-footer-grid,
-  .geogebra-split {
-    grid-template-columns: 1fr;
+  .poster-col:nth-child(3),
+  .interactive-lab-grid,
+  .poster-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .catalog-Grid {
-    grid-template-columns: 1fr;
+  .atlas-spec-box {
+    width: 100%;
   }
   .geogebra-3d-card {
     flex-direction: row;
@@ -1438,21 +1487,37 @@ button {
 }
 
 @media (max-width: 560px) {
+  .container {
+    padding: 0 12px;
+  }
+  .poster-body,
+  .poster-footer-grid {
+    padding: 12px;
+  }
   .wb-card-visuals {
     grid-template-columns: 1fr;
     height: auto;
   }
   .wb-photo-wrap {
-    height: 160px;
+    height: 155px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-soft);
   }
   .wb-schematic-preview {
-    height: 130px;
+    height: 135px;
   }
   .poster-banner {
     flex-direction: column;
   }
   .poster-grade-flag {
     clip-path: none;
-    padding: 8px 20px;
+    padding: 8px 16px;
+  }
+  .geogebra-3d-card {
+    flex-direction: column;
+  }
+  .poster-career-card,
+  .poster-think-card {
+    flex-direction: column;
   }
 }
